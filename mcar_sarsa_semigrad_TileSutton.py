@@ -13,7 +13,6 @@ import gym
 import numpy as np
 import matplotlib.pyplot as plt
 import pickle
-import rbf
 import time as timer
 import numpy as np
 
@@ -350,49 +349,4 @@ def evaluate_softmax_policy(env, num_rollouts, vFunc):
 
 
 
-if __name__ == "__main__":
-    #from gym import wrappers
-    env = gym.make('MountainCar-v0')
-    #rewards = []
-    runs = 1
-    episodes = 300
-    numOfTilings = 8
-    alpha = 0.5
-    n = 1
-    nrbf_tiling  = 8
-    # use optimistic initial value, so it's ok to set epsilon to 0
-    EPSILON = 0.0
-    centers = rbf.generate_grid_centers(nrbf_tiling);
-    print(centers)
-    widths = 0.1*np.ones(len(centers))
 
-    rbfun = rbf.RBF(centers, widths, env.action_space.n)
-    fMap = rbf.Rbf_2D_Feature_Map(rbfun)
-    reward_fn = rbf.RbfReward(fMap, np.array([-1./len(centers) for _ in centers]), env)
-
-    valueFunction = ValueFunction(alpha, numOfTilings)
-    for episode in range(0, episodes):
-        returns, states_visited, time = run_episode(env, valueFunction, n, False, EPSILON, reward_fn)
-        #for s in states_visited:
-        #    print(s, ",", reward_fn.get_reward(s))
-        print("-"*10)
-        print(episode, returns, time)
-        #print('episode:', episode, "steps", step)
-    #pickle the controller (value function)
-    #with open('mcar_policy.pickle', 'wb') as f:
-    #    pickle.dump(valueFunction, f, pickle.HIGHEST_PROTOCOL)
-
-    #with open('mcar_policy.pickle', 'rb') as f:
-    #    vFunc = pickle.load(f)
-
-    #play back learned controller
-    print("----testing-----")
-    EPSILON = 0.0
-    ave_steps = 0
-    num_tests = 100
-    for i in range(num_tests):
-        returns, states_visited, steps = run_episode(env, valueFunction, n, True, EPSILON, reward_fn)
-        print("return", returns)
-        print("time", steps)
-        ave_steps += steps
-    print("ave:", ave_steps/num_tests)
