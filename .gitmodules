@@ -1,3 +1,0 @@
-[submodule "atari/baselines"]
-	path = atari/baselines
-	url = https://github.com/openai/baselines.git
