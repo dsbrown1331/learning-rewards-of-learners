@@ -21,7 +21,7 @@ class RandomAgent(object):
         return self.action_space.sample()
 
 class PPO2Agent(object):
-    def __init__(self, env, env_type, path):
+    def __init__(self, env, env_type):
         ob_space = env.observation_space
         ac_space = env.action_space
 
@@ -34,12 +34,9 @@ class PPO2Agent(object):
                         nsteps=1, ent_coef=0., vf_coef=0.,
                         max_grad_norm=0.)
         self.model = make_model()
-        if path:
-            self.model.load(path)
-            try:
-                env.load(path)
-            except AttributeError:
-                pass
+
+    def load(self,path):
+        self.model.load(path)
 
     def act(self, observation, reward, done):
         a,v,state,neglogp = self.model.step(observation)
@@ -77,7 +74,13 @@ if __name__ == '__main__':
     else:
         assert False, 'not supported env type'
 
-    agent = PPO2Agent(env,args.env_type,args.model_path)
+    try:
+        env.load(args.model_path) # Reload running mean & rewards if available
+    except AttributeError:
+        pass
+
+    agent = PPO2Agent(env,args.env_type)
+    agent.load(args.model_path)
     #agent = RandomAgent(env.action_space)
 
     episode_count = args.episode_count
