@@ -52,6 +52,7 @@ if __name__ == '__main__':
     parser.add_argument('--model_path', default='')
     parser.add_argument('--episode_count', default=100)
     parser.add_argument('--record_video', action='store_true')
+    parser.add_argument('--render', action='store_true')
     args = parser.parse_args()
 
     # You can set the level to logger.DEBUG or logger.WARN if you
@@ -90,6 +91,9 @@ if __name__ == '__main__':
         while True:
             action = agent.act(ob, reward, done)
             ob, reward, done, _ = env.step(action)
+            if args.render:
+                env.render()
+
             steps += 1
             acc_reward += reward
             if done:
