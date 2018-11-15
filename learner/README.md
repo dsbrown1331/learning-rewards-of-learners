@@ -14,7 +14,7 @@ OPENAI_LOG_FORMAT='stdout,log,csv,tensorboard' OPENAI_LOGDIR=/home/wonjoon/works
 
 ## Generate Trajectory and Videos
 
-First, download the pretrained models [link](), and extract under the `models` directory.
+First, download the pretrained models [link](https://github.com/dsbrown1331/learning-rewards-of-learners/releases/tag/mujoco), and extract under the `models` directory.
 
 ```
 ./run_test.py --env_id BreakoutNoFrameskip-v4 --env_type atari --model_path ./models/breakout/checkpoints/03600 --record_video
