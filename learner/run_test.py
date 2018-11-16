@@ -21,7 +21,7 @@ class RandomAgent(object):
         return self.action_space.sample()
 
 class PPO2Agent(object):
-    def __init__(self, env, env_type, path):
+    def __init__(self, env, env_type):
         ob_space = env.observation_space
         ac_space = env.action_space
 
@@ -34,6 +34,8 @@ class PPO2Agent(object):
                         nsteps=1, ent_coef=0., vf_coef=0.,
                         max_grad_norm=0.)
         self.model = make_model()
+        
+    def load_policy(self, path, env):
         if path:
             self.model.load(path)
             try:
@@ -68,7 +70,7 @@ if __name__ == '__main__':
                            'episode_life':False,
                        })
     if args.record_video:
-        env = VecVideoRecorder(env,'.',lambda steps: True, 10000) # Always record every episode
+        env = VecVideoRecorder(env,'./videos/',lambda steps: True, 10000) # Always record every episode
 
     if args.env_type == 'atari':
         env = VecFrameStack(env, 4)
