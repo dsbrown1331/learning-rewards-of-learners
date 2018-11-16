@@ -35,14 +35,9 @@ class PPO2Agent(object):
                         max_grad_norm=0.)
         self.model = make_model()
         
-    def load_policy(self, path, env):
-        if path:
-            self.model.load(path)
-            try:
-                env.load(path)
-            except AttributeError:
-                pass
-
+    def load(self, path):
+        self.model.load(path)
+        
     def act(self, observation, reward, done):
         a,v,state,neglogp = self.model.step(observation)
         return a
