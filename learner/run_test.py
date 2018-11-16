@@ -79,7 +79,13 @@ if __name__ == '__main__':
     else:
         assert False, 'not supported env type'
 
-    agent = PPO2Agent(env,args.env_type,args.model_path)
+    try:
+        env.load(args.model_path) # Reload running mean & rewards if available
+    except AttributeError:
+        pass
+
+    agent = PPO2Agent(env,args.env_type)
+    agent.load(args.model_path)
     #agent = RandomAgent(env.action_space)
 
     episode_count = args.episode_count
