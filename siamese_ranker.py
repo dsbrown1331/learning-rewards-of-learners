@@ -56,14 +56,18 @@ class Model(object):
             return tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES,self.param_scope.name)
 
 class PPO2Agent(object):
-    def __init__(self, env, env_type,path):
+    def __init__(self, env, env_type, path, gpu=True):
         from baselines.common.policies import build_policy
         from baselines.ppo2.model import Model
 
         self.graph = tf.Graph()
 
-        config = tf.ConfigProto()
-        config.gpu_options.allow_growth = True
+        if gpu:
+            config = tf.ConfigProto()
+            config.gpu_options.allow_growth = True
+        else:
+            config = tf.ConfigProto(device_count = {'GPU': 0})
+
         self.sess = tf.Session(graph=self.graph,config=config)
 
         with self.graph.as_default():
@@ -83,8 +87,8 @@ class PPO2Agent(object):
                                 max_grad_norm=0.)
                 self.model = make_model()
 
-        self.model_path = path
-        self.model.load(path)
+                self.model_path = path
+                self.model.load(path)
 
     def act(self, observation, reward, done):
         a,v,state,neglogp = self.model.step(observation)
@@ -131,9 +135,12 @@ class Dataset(object):
             trajs = []
             for _ in range(num_trajs):
                 traj = self.gen_traj(agent)
-                #print('model', path, 'reward:',np.sum(traj[2]))
+                #print('model', agent.model_path, 'reward:',np.sum(traj[2]))
 
                 trajs.append(traj)
+            tqdm.write('model: %s avg reward: %f'%(
+                agent.model_path,
+                np.mean([np.sum(traj[2]) for traj in trajs])))
             ranked_trajs.append(trajs)
         self.ranked_trajs = ranked_trajs
 
@@ -260,6 +267,7 @@ if __name__ == "__main__":
 
             if it % 5000 == 0:
                 saver.save(sess,logdir+'/model.ckpt',global_step=it,write_meta_graph=False)
-
     except KeyboardInterrupt:
+        pass
+    finally:
         saver.save(sess,logdir+'/last.ckpt',write_meta_graph=False)
