@@ -4,9 +4,10 @@ from pathlib import Path
 import numpy as np
 import tensorflow as tf
 from tqdm import tqdm
+import gym
 
 # Import my own libraries
-sys.path.append('./learner/baselines/')
+sys.path.append(os.path.dirname(os.path.abspath(__file__))+'/learner/baselines/')
 from tf_commons.ops import *
 
 # TF Log Level configuration
@@ -14,13 +15,14 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' # Only show ERROR log
 EMBEDDING_DIMS = 128
 
 class Model(object):
-    def __init__(self,in_dims,embedding_dims):
-        self.x = tf.placeholder(tf.float32,[None,in_dims])
-        self.y = tf.placeholder(tf.float32,[None,in_dims])
+    def __init__(self,in_dims,embedding_dims,steps=20):
+        self.steps = steps
+        self.x = tf.placeholder(tf.float32,[None,in_dims*steps])
+        self.y = tf.placeholder(tf.float32,[None,in_dims*steps])
         self.l = tf.placeholder(tf.int32,[None,1])
 
         with tf.variable_scope('weights') as param_scope:
-            self.embed_fc1 = Linear('embed_fc1',in_dims,embedding_dims)
+            self.embed_fc1 = Linear('embed_fc1',in_dims*steps,embedding_dims)
             self.embed_fc2 = Linear('embed_fc2',embedding_dims,embedding_dims)
             self.embed_fc3 = Linear('embed_fc3',embedding_dims,embedding_dims)
 
@@ -90,25 +92,27 @@ class PPO2Agent(object):
                 self.model_path = path
                 self.model.load(path)
 
-    def act(self, observation, reward, done):
-        a,v,state,neglogp = self.model.step(observation)
+        if env_type == 'mujoco':
+            with open(path+'.env_stat.pkl', 'rb') as f :
+                import pickle
+                s = pickle.load(f)
+            self.ob_rms = s['ob_rms']
+            self.ret_rms = s['ret_rms']
+            self.clipob = 10.
+            self.epsilon = 1e-8
+        else:
+            self.ob_rms = None
+
+    def act(self, obs, reward, done):
+        if self.ob_rms:
+            obs = np.clip((obs - self.ob_rms.mean) / np.sqrt(self.ob_rms.var + self.epsilon), -self.clipob, self.clipob)
+
+        a,v,state,neglogp = self.model.step(obs)
         return a
 
 class Dataset(object):
-    def __init__(self,env_id,env_type):
-        from baselines.common.cmd_util import make_vec_env
-        from baselines.common.vec_env.vec_frame_stack import VecFrameStack
-        from baselines.common.vec_env.vec_normalize import VecNormalize
-
-        #env id, env type, num envs, and seed
-        env = make_vec_env(env_id, env_type, 1, 0, wrapper_kwargs={'clip_rewards':False,'episode_life':False,})
-
-        if env_type == 'atari':
-            self.env = VecFrameStack(env, 4)
-        elif env_type == 'mujoco':
-            self.env = VecNormalize(env,ob=True,ret=False,eval=True)
-        else:
-            assert False, 'not supported env type'
+    def __init__(self,env_id):
+        self.env = gym.make(env_id)
 
     def gen_traj(self,agent):
         try:
@@ -127,7 +131,7 @@ class Dataset(object):
 
             if done: break
 
-        return np.concatenate(obs,axis=0), np.array(actions), np.array(rewards)
+        return np.stack(obs,axis=0), np.array(actions), np.array(rewards)
 
     def prebuilt(self,agents,num_trajs):
         ranked_trajs = []
@@ -176,11 +180,11 @@ if __name__ == "__main__":
     parser.add_argument('--env_type', default='', help='mujoco or atari')
     parser.add_argument('--learners_path', default='', help='path of learning agents')
     # Trainig Args
-    parser.add_argument('--num_iter', default=30000, help='number of iterations')
-    parser.add_argument('--batch_size', default=64, help='batch size')
-    parser.add_argument('--lr', default=1e-4, help='learning rate')
-    parser.add_argument('--steps', default=20, help='trajectory cropping size')
-    parser.add_argument('--num_trajs', default=100, help='# of training trajectories')
+    parser.add_argument('--num_iter', type=int, default=30000, help='number of iterations')
+    parser.add_argument('--batch_size', type=int, default=64, help='batch size')
+    parser.add_argument('--lr', type=float, default=1e-4, help='learning rate')
+    parser.add_argument('--steps', type=int, default=20, help='trajectory cropping size')
+    parser.add_argument('--num_trajs', type=int, default=100, help='# of training trajectories')
     parser.add_argument('--logbase_path', default='./log/', help='path to log base (env_id will be concatenated at the end)')
     args = parser.parse_args()
 
@@ -195,8 +199,8 @@ if __name__ == "__main__":
             exit()
     logdir = str(logdir)
 
-    dataset = Dataset(args.env_id,args.env_type)
-    valid_dataset = Dataset(args.env_id,args.env_type)
+    dataset = Dataset(args.env_id)
+    valid_dataset = Dataset(args.env_id)
 
     train_agents = []
     valid_agents = []
@@ -215,7 +219,7 @@ if __name__ == "__main__":
     # Separate graph from ppo
     graph = tf.Graph()
     with graph.as_default():
-        model = Model(dataset.env.observation_space.shape[0]*args.steps,EMBEDDING_DIMS)
+        model = Model(dataset.env.observation_space.shape[0],EMBEDDING_DIMS,args.steps)
         saver = tf.train.Saver(var_list=model.parameters(train=False),max_to_keep=0)
 
         optim = tf.train.AdamOptimizer(args.lr)
