@@ -148,6 +148,11 @@ class RankerEnv(RankerEnvGT):
 
         return reward
 
+class RankerEnvBinary(RankerEnv):
+    def calc_reward(self,traj,batch_size=16,steps=20):
+        reward = super().calc_reward(traj,batch_size,steps)
+
+        return 1.0 if reward > 0. else -1.
 
 # Test Code
 if __name__ == "__main__":
@@ -156,7 +161,8 @@ if __name__ == "__main__":
 
     #env = RankerEnvGT(
     #    'Hopper-v2')
-    env = RankerEnv(
+    #env = RankerEnv(
+    env = RankerEnvBinary(
         'Hopper-v2',
         partial(Model,embedding_dims=128,steps=20),
         './log/Hopper-v2/last.ckpt'
