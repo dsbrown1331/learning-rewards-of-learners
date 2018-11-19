@@ -53,14 +53,21 @@ class RankerEnv(object):
         Previous & Current Trajectories to evaluate rewards.
         """
         obs = [self.env.reset()]
+        actions = []
+        rewards = []
         while True:
             action = self.env.action_space.sample()
             ob, reward, done, _ = self.env.step(action)
-            obs.append(ob)
-            if done: break
-        self.past_trajs = [np.concatenate(obs,axis=0)]
 
-        self.recent_trajs = []
+            obs.append(ob)
+            actions.append(action)
+            rewards.append(reward)
+            if done: break
+        self.past_trajs = [
+            (np.concatenate(obs,axis=0),
+             np.concatenate(actions,axis=0),
+             np.concatenate(rewards,axis=0))]
+
         self.current_traj = []
 
     def seed(self,seed):
@@ -71,34 +78,38 @@ class RankerEnv(object):
 
     def reset(self):
         ob = self.env.reset()
-        self.current_traj = [ob]
+        self.current_traj = [(ob,None,None)]
 
         return ob[0] #Since self.env is DummyVecEnv.
 
     def step(self,action):
         ob, true_r, done, info = self.env.step(action[None])
-        self.current_traj.append(ob)
+        self.current_traj.append((ob,action,true_r))
 
         if done[0] :
-            traj = np.concatenate(self.current_traj,axis=0)
-            reward = self.calc_reward(traj)
+            obs, actions, true_rs = zip(*self.current_traj)
+            obs = np.concatenate(obs,axis=0)
+            actions = np.concatenate(actions[1:],axis=0)
+            true_rs = np.concatenate(true_rs[1:],axis=0) # get rid of the first element (None;placeholder)
 
-            self.recent_trajs.append(traj)
+            traj = (obs,actions,true_rs)
+
+            reward = self.calc_reward(traj)
         else:
+            traj = None
             reward = 0.
 
-        return ob[0], reward, done[0], {'true_reward':true_r}
+        return ob[0], reward, done[0], {'true_reward':true_r,'traj':traj}
 
-    def update(self):
-        if len(self.recent_trajs) > 0:
-            self.past_trajs = self.recent_trajs
+    def update_past_trajs(self,trajs):
+        self.past_trajs = trajs
 
     def calc_reward(self,traj,batch_size=16,steps=20):
         b_x, b_y = [], []
         for _ in range(batch_size):
             def _pick_traj_and_crop(trajs):
                 idx = np.random.randint(len(trajs))
-                obs = trajs[idx]
+                obs,actions,rewards = trajs[idx]
 
                 if len(obs)-steps <= 0: # Trajectories are too short.
                     _ = np.tile(obs[-1:],(steps-len(obs),1))
@@ -124,6 +135,20 @@ class RankerEnv(object):
         reward = np.mean(vals)
 
         return reward
+
+class RankerEnvGT(RankerEnv):
+    def calc_reward(self,traj):
+        true_reward = np.sum(traj[2])
+        past_true_reward = np.mean([np.sum(rewards) for _,_,rewards in self.past_trajs])
+
+        return true_reward - past_true_reward
+
+class RankerEnvGTBinary(RankerEnv):
+    def calc_reward(self,traj):
+        true_reward = np.sum(traj[2])
+        past_true_reward = np.mean([np.sum(rewards) for _,_,rewards in self.past_trajs])
+
+        return 1. if (true_reward - past_true_reward) > 0 else -1.
 
 # Test Code
 if __name__ == "__main__":
@@ -154,9 +179,11 @@ if __name__ == "__main__":
     np.random.shuffle(valid_agents)
 
     for current_agent in valid_agents: #train_agents
+        """ Update Past Trajectories """
+        trajs = []
         rewards = []
         trs = []
-        for _ in range(10):
+        for _ in range(5):
             ob = env.reset()
             tr = []
             while True:
@@ -164,15 +191,17 @@ if __name__ == "__main__":
                 ob, reward, done, _ = env.step(action)
                 tr.append(_['true_reward'])
                 if done: break
+            trajs.append(_['traj'])
             trs.append(np.sum(tr))
             rewards.append(reward)
         current_tr = np.mean(trs)
+        env.update_past_trajs(trajs)
 
-        env.update()
+        """ Compare against the current_agent trajectories """
         for evolved_agent in valid_agents:
             rewards = []
             trs = []
-            for _ in range(10):
+            for _ in range(5):
                 ob = env.reset()
                 tr = []
                 while True:
