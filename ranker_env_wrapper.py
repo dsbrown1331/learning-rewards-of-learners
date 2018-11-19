@@ -1,53 +1,18 @@
 import os, sys
 import numpy as np
 import tensorflow as tf
-
-# Import my own libraries
-sys.path.append('./learner/baselines/')
+import gym
 
 # TF Log Level configuration
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' # Only show ERROR log
 
-class RankerEnv(object):
+class RankerEnvGT(object):
     def __init__(self,
-                 env_id,
-                 env_type,
-                 env_params_path,
-                 RankerModel,
-                 model_path):
+                 env_id):
         """
         Make Environment
         """
-        from baselines.common.cmd_util import make_vec_env
-        from baselines.common.vec_env.vec_frame_stack import VecFrameStack
-        from baselines.common.vec_env.vec_normalize import VecNormalize
-
-        #env id, env type, num envs, and seed
-        env = make_vec_env(env_id, env_type, 1, 0, wrapper_kwargs={'clip_rewards':False,'episode_life':False,})
-
-        if env_type == 'atari':
-            self.env = VecFrameStack(env, 4)
-        elif env_type == 'mujoco':
-            self.env = VecNormalize(env,ob=True,ret=False,eval=True)
-            self.env.load(env_params_path)
-        else:
-            assert False, 'not supported env type'
-
-        """
-        Build Ranker Model Graph & Load Parameters
-        """
-        self.graph = tf.Graph()
-
-        config = tf.ConfigProto(
-            device_count = {'GPU': 0}) # Run on CPU
-        #config.gpu_options.allow_growth = True
-        self.sess = tf.Session(graph=self.graph,config=config)
-
-        with self.graph.as_default():
-            with self.sess.as_default():
-                self.ranker_model = RankerModel()
-                saver = tf.train.Saver(var_list=self.ranker_model.parameters(train=False),max_to_keep=0)
-                saver.restore(self.sess,model_path)
+        self.env = gym.make(env_id)
 
         """
         Previous & Current Trajectories to evaluate rewards.
@@ -64,11 +29,13 @@ class RankerEnv(object):
             rewards.append(reward)
             if done: break
         self.past_trajs = [
-            (np.concatenate(obs,axis=0),
-             np.concatenate(actions,axis=0),
-             np.concatenate(rewards,axis=0))]
+            (np.stack(obs,axis=0),
+             np.stack(actions,axis=0),
+             np.stack(rewards,axis=0))]
 
         self.current_traj = []
+        self.accumulate = False
+        self.current_trajs = []
 
     def seed(self,seed):
         return self.env.seed(seed)
@@ -80,29 +47,74 @@ class RankerEnv(object):
         ob = self.env.reset()
         self.current_traj = [(ob,None,None)]
 
-        return ob[0] #Since self.env is DummyVecEnv.
+        return ob
 
     def step(self,action):
-        ob, true_r, done, info = self.env.step(action[None])
+        ob, true_r, done, info = self.env.step(action)
         self.current_traj.append((ob,action,true_r))
 
-        if done[0] :
+        if done :
             obs, actions, true_rs = zip(*self.current_traj)
-            obs = np.concatenate(obs,axis=0)
-            actions = np.concatenate(actions[1:],axis=0)
-            true_rs = np.concatenate(true_rs[1:],axis=0) # get rid of the first element (None;placeholder)
+            obs = np.stack(obs,axis=0)
+            actions = np.stack(actions[1:],axis=0)
+            true_rs = np.stack(true_rs[1:],axis=0) # get rid of the first element (None;placeholder)
 
             traj = (obs,actions,true_rs)
+            if self.accumulate:
+                self.current_trajs.append(traj)
 
             reward = self.calc_reward(traj)
         else:
             traj = None
             reward = 0.
 
-        return ob[0], reward, done[0], {'true_reward':true_r,'traj':traj}
+        return ob, reward, done, {'true_reward':true_r,'traj':traj}
 
-    def update_past_trajs(self,trajs):
-        self.past_trajs = trajs
+    def start_accumulate_trajs(self):
+        assert self.accumulate == False, 'it was accumulating'
+        self.accumulate = True
+
+    def end_accumulate_trajs(self):
+        self.past_trajs = self.current_trajs
+        self.current_trajs = []
+        self.accumulate = False
+
+    def calc_reward(self,traj):
+        true_reward = np.sum(traj[2])
+        past_true_reward = np.mean([np.sum(rewards) for _,_,rewards in self.past_trajs])
+
+        return true_reward - past_true_reward
+
+class RankerEnvGTBinary(RankerEnvGT):
+    def calc_reward(self,traj):
+        true_reward = np.sum(traj[2])
+        past_true_reward = np.mean([np.sum(rewards) for _,_,rewards in self.past_trajs])
+
+        return 1. if (true_reward - past_true_reward) > 0 else -1.
+
+class RankerEnv(RankerEnvGT):
+    def __init__(self,
+                 env_id,
+                 RankerModel,
+                 model_path):
+        super().__init__(env_id)
+
+        """
+        Build Ranker Model Graph & Load Parameters
+        """
+        self.graph = tf.Graph()
+
+        config = tf.ConfigProto(
+            device_count = {'GPU': 0}) # Run on CPU
+        #config.gpu_options.allow_growth = True
+        self.sess = tf.Session(graph=self.graph,config=config)
+
+        with self.graph.as_default():
+            with self.sess.as_default():
+                self.ranker_model = RankerModel(self.env.observation_space.shape[0])
+                saver = tf.train.Saver(var_list=self.ranker_model.parameters(train=False),max_to_keep=0)
+                saver.restore(self.sess,model_path)
+
 
     def calc_reward(self,traj,batch_size=16,steps=20):
         b_x, b_y = [], []
@@ -136,31 +148,18 @@ class RankerEnv(object):
 
         return reward
 
-class RankerEnvGT(RankerEnv):
-    def calc_reward(self,traj):
-        true_reward = np.sum(traj[2])
-        past_true_reward = np.mean([np.sum(rewards) for _,_,rewards in self.past_trajs])
-
-        return true_reward - past_true_reward
-
-class RankerEnvGTBinary(RankerEnv):
-    def calc_reward(self,traj):
-        true_reward = np.sum(traj[2])
-        past_true_reward = np.mean([np.sum(rewards) for _,_,rewards in self.past_trajs])
-
-        return 1. if (true_reward - past_true_reward) > 0 else -1.
 
 # Test Code
 if __name__ == "__main__":
     from siamese_ranker import Model
     from functools import partial
 
+    #env = RankerEnvGT(
+    #    'Hopper-v2')
     env = RankerEnv(
         'Hopper-v2',
-        'mujoco',
-        './learner/models/hopper/checkpoints/00480',
-        partial(Model, 11*20, 128), #ob_dim * steps
-        './log/Hopper-v2/model.ckpt-25000'
+        partial(Model,embedding_dims=128,steps=20),
+        './log/Hopper-v2/last.ckpt'
     )
 
     from pathlib import Path
@@ -180,7 +179,7 @@ if __name__ == "__main__":
 
     for current_agent in valid_agents: #train_agents
         """ Update Past Trajectories """
-        trajs = []
+        env.start_accumulate_trajs()
         rewards = []
         trs = []
         for _ in range(5):
@@ -191,11 +190,10 @@ if __name__ == "__main__":
                 ob, reward, done, _ = env.step(action)
                 tr.append(_['true_reward'])
                 if done: break
-            trajs.append(_['traj'])
             trs.append(np.sum(tr))
             rewards.append(reward)
         current_tr = np.mean(trs)
-        env.update_past_trajs(trajs)
+        env.end_accumulate_trajs()
 
         """ Compare against the current_agent trajectories """
         for evolved_agent in valid_agents:
