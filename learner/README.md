@@ -12,6 +12,15 @@ You should see the contents of `baselines`
 OPENAI_LOG_FORMAT='stdout,log,csv,tensorboard' OPENAI_LOGDIR=/home/wonjoon/workspace/LfL_new/learner/models/log/reacher python -m baselines.run --alg=ppo2 --env=Reacher-v2 --save_interval=20
 ```
 
+### Create & Use Custom Reward Function
+
+- First, define your reward function. You need to change two different files. `baselines/common/custom_reward_wrapper.py` and `baselines/run.py`.
+- Then, start training with the custom reward function by passing the `custom_reward` argument. For example,
+```
+python -m baselines.run --alg=ppo2 --env=Reacher-v2 --save_interval=20 --custom_reward 'live_long'
+```
+
+
 ## Generate Trajectory and Videos
 
 First, download the pretrained models [link](https://github.com/dsbrown1331/learning-rewards-of-learners/releases/tag/mujoco), and extract under the `models` directory.
