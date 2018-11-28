@@ -20,6 +20,11 @@ OPENAI_LOG_FORMAT='stdout,log,csv,tensorboard' OPENAI_LOGDIR=/home/wonjoon/works
 python -m baselines.run --alg=ppo2 --env=Reacher-v2 --save_interval=20 --custom_reward 'live_long'
 ```
 
+### Train with preference-based reward
+
+```
+OPENAI_LOG_FORMAT='stdout,log,csv,tensorboard' OPENAI_LOGDIR=/home/wonjoon/workspace/LfL/learner/models_preference/swimmer python -m baselines.run --alg=ppo2 --env=Swimmer-v2 --num_timesteps=1e6 --save_interval=10 --custom_reward 'preference' --custom_reward_kwargs='{"num_models":3,"model_dir":"../../log_preference/Swimmer-v2"}'
+```
 
 ## Generate Trajectory and Videos
 
