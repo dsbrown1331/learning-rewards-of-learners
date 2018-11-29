@@ -34,10 +34,10 @@ class PPO2Agent(object):
                         nsteps=1, ent_coef=0., vf_coef=0.,
                         max_grad_norm=0.)
         self.model = make_model()
-
+        
     def load(self, path):
         self.model.load(path)
-
+        
     def act(self, observation, reward, done):
         a,v,state,neglogp = self.model.step(observation)
         return a
@@ -83,7 +83,7 @@ if __name__ == '__main__':
     agent.load(args.model_path)
     #agent = RandomAgent(env.action_space)
 
-    episode_count = int(args.episode_count)
+    episode_count = args.episode_count
     reward = 0
     done = False
 
