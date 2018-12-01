@@ -58,7 +58,7 @@ class Model(object):
             return tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES,self.param_scope.name)
 
 class PPO2Agent(object):
-    def __init__(self, env, env_type, path, gpu=True):
+    def __init__(self, env, env_type, path, stochastic=False, gpu=True):
         from baselines.common.policies import build_policy
         from baselines.ppo2.model import Model
 
@@ -103,11 +103,18 @@ class PPO2Agent(object):
         else:
             self.ob_rms = None
 
+        self.stochastic = stochastic
+
     def act(self, obs, reward, done):
         if self.ob_rms:
             obs = np.clip((obs - self.ob_rms.mean) / np.sqrt(self.ob_rms.var + self.epsilon), -self.clipob, self.clipob)
 
-        a,v,state,neglogp = self.model.step(obs)
+        with self.graph.as_default():
+            with self.sess.as_default():
+                if self.stochastic:
+                    a,v,state,neglogp = self.model.step(obs)
+                else:
+                    a = self.model.act_model.act(obs)
         return a
 
 class Dataset(object):
@@ -115,11 +122,6 @@ class Dataset(object):
         self.env = gym.make(env_id)
 
     def gen_traj(self,agent):
-        try:
-            self.env.load(agent.model_path)
-        except AttributeError:
-            pass
-
         obs, actions, rewards = [self.env.reset()], [], [0.]
         while True:
             action = agent.act(obs[-1], rewards[-1], False)
