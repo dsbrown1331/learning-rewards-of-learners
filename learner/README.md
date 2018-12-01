@@ -26,6 +26,11 @@ python -m baselines.run --alg=ppo2 --env=Reacher-v2 --save_interval=20 --custom_
 OPENAI_LOG_FORMAT='stdout,log,csv,tensorboard' OPENAI_LOGDIR=/home/wonjoon/workspace/LfL/learner/models_preference/swimmer python -m baselines.run --alg=ppo2 --env=Swimmer-v2 --num_timesteps=1e6 --save_interval=10 --custom_reward 'preference' --custom_reward_kwargs='{"num_models":3,"model_dir":"../../log_preference/Swimmer-v2"}'
 ```
 
+### Train with PyTorch preference-based reward function
+```
+OPENAI_LOG_FORMAT='stdout,log,csv,tensorboard' OPENAI_LOGDIR=/home/dsbrown/logs/spaceinvaders_novice-ppo-2 python -m baselines.run --alg=ppo2 --env=SpaceInvadersNoFrameskip-v4 --save_interval=50 --custom_reward pytorch --custom_reward_path ./spaceinvaders_novice_reward_last40_sorted.params --num_timesteps=2e7
+```
+
 ## Generate Trajectory and Videos
 
 First, download the pretrained models [link](https://github.com/dsbrown1331/learning-rewards-of-learners/releases/tag/mujoco), and extract under the `models` directory.
