@@ -18,12 +18,15 @@ linestyles = ["-", "--", "-.", ":"]
 colors = ['r','g','b','k']
 num_steps = 2475
 for cnt, data_dir in enumerate(tb_to_plot):
+    print(cnt, data_dir)
     results = pu.load_results('~/logs/' + data_dir) 
-    
+    #print(results) 
     r = results[0]
-    print(r.progress.total_timesteps)
+    #print(r)
+    #print(r.progress.total_timesteps)
     #plt.plot(np.cumsum(r.monitor.l), r.monitor.r)
-    plt.plot(r.progress.total_timesteps[:num_steps], r.progress.eprewmean[:num_steps], label=labels[cnt], linestyle=linestyles[cnt], color = colors[cnt], linewidth=2)
+    plt.plot(np.cumsum(r.monitor.l)[:num_steps], pu.smooth(r.monitor.r, radius=100)[:num_steps], label=labels[cnt], linestyle=linestyles[cnt], color = colors[cnt], linewidth=2)
+#    plt.plot(np.cumsum(r.monitor.l), pu.smooth(r.monitor.r, radius=10))
     #pu.plot_results(results)
 
 plt.xlabel("steps")
