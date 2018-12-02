@@ -1,3 +1,5 @@
+import sys
+sys.path.append('../learner/baselines/')
 from baselines.common import plot_util as pu
 import matplotlib.pyplot as plt
 import numpy as np
@@ -14,14 +16,14 @@ tb_to_plot = ["breakout_novice-ppo-long", "breakout_rl_ppo", "breakout_livelong-
 labels = ["LfL", "RL", "LiveLong", "Random"]
 linestyles = ["-", "--", "-.", ":"]
 colors = ['r','g','b','k']
-num_steps = 1000
+num_steps = 2220
 for cnt, data_dir in enumerate(tb_to_plot):
     results = pu.load_results('~/logs/' + data_dir) 
     
     r = results[0]
     print(r.progress.total_timesteps)
     #plt.plot(np.cumsum(r.monitor.l), r.monitor.r)
-    plt.plot(r.progress.total_timesteps[:num_steps], r.progress.eprewmean[:num_steps], label=labels[cnt], linestyle=linestyles[cnt], color = colors[cnt])
+    plt.plot(r.progress.total_timesteps[:num_steps], r.progress.eprewmean[:num_steps], label=labels[cnt], linestyle=linestyles[cnt], color = colors[cnt], linewidth=2)
     #pu.plot_results(results)
 
 plt.xlabel("steps")
