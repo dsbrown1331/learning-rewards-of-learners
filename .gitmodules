@@ -1,6 +1,3 @@
-[submodule "learner/baselines"]
-	path = learner/baselines
-	url = https://github.com/hiwonjoon/baselines.git
 [submodule "estool"]
 	path = estool
 	url = git@github.com:hiwonjoon/estool.git
