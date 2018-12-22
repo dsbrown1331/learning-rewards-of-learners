@@ -22,9 +22,10 @@ class RandomAgent(object):
         return self.action_space.sample()
 
 class PPO2Agent(object):
-    def __init__(self, env, env_type):
+    def __init__(self, env, env_type, stochastic):
         ob_space = env.observation_space
         ac_space = env.action_space
+        self.stochastic = stochastic
 
         if env_type == 'atari':
             policy = build_policy(env,'cnn')
@@ -40,7 +41,10 @@ class PPO2Agent(object):
         self.model.load(path)
 
     def act(self, observation, reward, done):
-        a,v,state,neglogp = self.model.step(observation)
+        if self.stochastic:
+            a,v,state,neglogp = self.model.step(observation)
+        else:
+            a = self.model.act_model.act(observation)
         return a
 
 class PPO2Agent2(object):
@@ -115,7 +119,9 @@ if __name__ == '__main__':
     parser.add_argument('--episode_count', default=100)
     parser.add_argument('--record_video', action='store_true')
     parser.add_argument('--render', action='store_true')
+    parser.add_argument('--stochastic', default=False, help="Should agent sample actions, i.e. explore", action='store_true')
     args = parser.parse_args()
+
 
     # You can set the level to logger.DEBUG or logger.WARN if you
     # want to change the amount of output.
@@ -130,7 +136,7 @@ if __name__ == '__main__':
                            'episode_life':False,
                        })
     if args.record_video:
-        env = VecVideoRecorder(env,'./videos/',lambda steps: True, 10000) # Always record every episode
+        env = VecVideoRecorder(env,'./videos/',lambda steps: True, 20000) # Always record every episode
 
     if args.env_type == 'atari':
         env = VecFrameStack(env, 4)
@@ -144,7 +150,7 @@ if __name__ == '__main__':
     except AttributeError:
         pass
 
-    agent = PPO2Agent(env,args.env_type)
+    agent = PPO2Agent(env,args.env_type, args.stochastic)
     agent.load(args.model_path)
     #agent = RandomAgent(env.action_space)
 
@@ -169,4 +175,4 @@ if __name__ == '__main__':
                 break
 
     env.close()
-    env.env.close()
+    env.venv.close()
