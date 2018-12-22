@@ -325,7 +325,7 @@ if __name__=="__main__":
     tf.random.set_random_seed(seed)
 
     print("Training reward for", env_id)
-    n_train = 3000 #number of pairs of trajectories to create
+    n_train = 30 #number of pairs of trajectories to create
     snippet_length = 50 #length of trajectory for training comparison
     lr = 0.0001
     weight_decay = 0
@@ -346,10 +346,10 @@ if __name__=="__main__":
 
     demonstrations, learning_returns, learning_rewards = generate_novice_demos(env, env_name, agent)
     # Let's plot the returns to see if they are roughly monotonically increasing.
-    plt.plot(learning_returns)
-    plt.xlabel("Demonstration")
-    plt.ylabel("Return")
-    plt.savefig(env_type + "LearningCurvePPO.png")
+    #plt.plot(learning_returns)
+    #plt.xlabel("Demonstration")
+    #plt.ylabel("Return")
+    #plt.savefig(env_type + "LearningCurvePPO.png")
     #plt.show()
 
     #sort the demonstrations according to ground truth reward
