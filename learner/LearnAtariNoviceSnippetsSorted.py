@@ -15,7 +15,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from run_test import *
-import matplotlib.pylab as plt
+#import matplotlib.pylab as plt
 
 def normalize_state(obs):
     obs_highs = env.observation_space.high
@@ -322,14 +322,14 @@ if __name__=="__main__":
     seed = int(args.seed)
     torch.manual_seed(seed)
     np.random.seed(seed)
-    tf.random.set_random_seed(seed)
+    tf.set_random_seed(seed)
 
     print("Training reward for", env_id)
     n_train = 30 #number of pairs of trajectories to create
     snippet_length = 50 #length of trajectory for training comparison
     lr = 0.0001
     weight_decay = 0
-    num_iter = 5
+    num_iter = 1
     l1_reg=0.0
     stochastic = True
 
