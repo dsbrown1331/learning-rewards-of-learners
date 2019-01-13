@@ -18,7 +18,7 @@
 #SBATCH -p gpu          # Queue name
 #SBATCH -o /work/05933/dsbrown/maverick/output/logs/LearnPreference_videopinball.o%j  # Name of stdout output file (%j expands to jobid) 
 
-#SBATCH -t 00:30:00            # Run time (hh:mm:ss)
+#SBATCH -t 04:00:00            # Run time (hh:mm:ss)
 #      <------------ Account String ------------>
 # <--- (Use this ONLY if you have MULTIPLE accounts) --->
 #SBATCH -A Deep-supervised-inve 

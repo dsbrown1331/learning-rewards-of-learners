@@ -20,7 +20,7 @@ schedule_other ='''#SBATCH -N 1                   # Total number of nodes (16 co
 '''
 
 batch_rest = '''
-#SBATCH -t 00:30:00            # Run time (hh:mm:ss)
+#SBATCH -t 04:00:00            # Run time (hh:mm:ss)
 #      <------------ Account String ------------>
 # <--- (Use this ONLY if you have MULTIPLE accounts) --->
 #SBATCH -A Deep-supervised-inve 
