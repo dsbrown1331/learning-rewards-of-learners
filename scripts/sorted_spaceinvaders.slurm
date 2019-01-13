@@ -16,7 +16,7 @@
 #SBATCH -N 1                   # Total number of nodes (16 cores/node)
 #SBATCH -n 1                  # Total number of tasks
 #SBATCH -p gpu          # Queue name
-#SBATCH -o ./output/logs/LearnPreference_spaceinvaders.o%j  # Name of stdout output file (%j expands to jobid) 
+#SBATCH -o /work/05933/dsbrown/maverick/output/logs/LearnPreference_spaceinvaders.o%j  # Name of stdout output file (%j expands to jobid) 
 
 #SBATCH -t 00:30:00            # Run time (hh:mm:ss)
 #      <------------ Account String ------------>
