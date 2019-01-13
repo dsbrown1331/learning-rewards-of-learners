@@ -317,7 +317,9 @@ if __name__=="__main__":
     elif env_name == "mspacman":
         env_id = "MsPacmanNoFrameskip-v4"
     elif env_name == "videopinball":
-        env_id = "VideoPinball"
+        env_id = "VideoPinballNoFrameskip-v4"
+    elif env_name == "beamrider":
+        env_id = "BeamRiderNoFrameskip-v4"
     else:
         env_id = env_name[0].upper() + env_name[1:] + "NoFrameskip-v4"
 
