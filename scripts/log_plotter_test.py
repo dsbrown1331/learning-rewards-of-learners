@@ -12,15 +12,14 @@ params = {'legend.fontsize': 'xx-large',
          'ytick.labelsize':'x-large'}
 pylab.rcParams.update(params)
 plt.ticklabel_format(style='sci', axis='x', scilimits=(0,0))
-tb_to_plot = ["breakout_novice-ppo-long", "breakout_rl_ppo", "breakout_livelong-ppo-2", "breakout_random_ppo"]
+tb_to_plot = ["breakout-ppo"]
 labels = ["LfL", "RL", "LiveLong", "Random"]
 linestyles = ["-", "--", "-.", ":"]
 colors = ['r','g','b','k']
-num_steps = 2220
+num_steps = 2475
 for cnt, data_dir in enumerate(tb_to_plot):
-
     results = pu.load_results('~/logs/' + data_dir) 
-    
+    print(
     r = results[0]
     print(r.progress.total_timesteps)
     #plt.plot(np.cumsum(r.monitor.l), r.monitor.r)
@@ -31,6 +30,6 @@ plt.xlabel("steps")
 plt.ylabel("return")
 plt.legend()
 plt.tight_layout()
-plt.savefig("breakout_ablation.png")
+plt.savefig("spaceinvaders_ablation.png")
 plt.show()
 

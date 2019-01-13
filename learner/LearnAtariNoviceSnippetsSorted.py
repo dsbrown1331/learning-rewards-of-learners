@@ -34,12 +34,19 @@ def mask_score(obs):
     return obs
 
 def generate_novice_demos(env, env_name, agent):
-    checkpoint_min = 100
-    checkpoint_max = 1000
-    checkpoint_step = 100
+    checkpoint_min = 50
+    checkpoint_max = 600
+    checkpoint_step = 50
     checkpoints = []
+    if env_name == "enduro":
+        checkpoint_min = 3100
+        checkpoint_max = 3650
     for i in range(checkpoint_min, checkpoint_max + checkpoint_step, checkpoint_step):
-        if i < 1000:
+        if i < 10:
+            checkpoints.append('0000')
+        elif i < 100:
+            checkpoints.append('000' + str(i))
+        elif i < 1000:
             checkpoints.append('00' + str(i))
         elif i < 10000:
             checkpoints.append('0' + str(i))
@@ -52,7 +59,7 @@ def generate_novice_demos(env, env_name, agent):
     learning_rewards = []
     for checkpoint in checkpoints:
 
-        model_path = "./models/" + env_name + "/checkpoints/" + checkpoint
+        model_path = "./models/" + env_name + "_25/" + checkpoint
 
         agent.load(model_path)
         episode_count = 1
@@ -305,19 +312,17 @@ if __name__=="__main__":
 
     args = parser.parse_args()
     env_name = args.env_name
-    if env_name == "breakout":
-        env_id = "BreakoutNoFrameskip-v4"
-        env_type = "atari"
-    elif env_name == "pong":
-        env_id = "PongNoFrameskip-v4"
-        env_type = "atari"
-    elif env_name == "spaceinvaders":
+    if env_name == "spaceinvaders":
         env_id = "SpaceInvadersNoFrameskip-v4"
-        env_type = "atari"
+    elif env_name == "mspacman":
+        env_id = "MsPacmanNoFrameskip-v4"
+    elif env_name == "videopinball":
+        env_id = "VideoPinball"
     else:
-        print('env_name: "" not supported!'.format(env_name))
-        sys.exit()
+        env_id = env_name[0].upper() + env_name[1:] + "NoFrameskip-v4"
 
+    env_type = "atari"
+    print(env_type)
     #set seeds
     seed = int(args.seed)
     torch.manual_seed(seed)
@@ -325,8 +330,8 @@ if __name__=="__main__":
     tf.set_random_seed(seed)
 
     print("Training reward for", env_id)
-    n_train = 3000 #number of pairs of trajectories to create
-    snippet_length = 50 #length of trajectory for training comparison
+    n_train = 30 #number of pairs of trajectories to create
+    snippet_length = 5 #length of trajectory for training comparison
     lr = 0.0001
     weight_decay = 0
     num_iter = 5
@@ -379,10 +384,10 @@ if __name__=="__main__":
     with torch.no_grad():
         pred_returns = [predict_traj_return(reward_net, traj) for traj in demonstrations]
     for i, p in enumerate(pred_returns):
-        print(i,p,learning_returns[i])
+        print(i,p,sorted_returns[i])
 
     print("accuracy", calc_accuracy(reward_net, training_obs, training_labels))
 
 
     #TODO:add checkpoints to training process
-    torch.save(reward_net.state_dict(), args.reward_model_path)
+    torch.save(reward_net.state_dict(), args.reward_model_path + env_name + ".params")
