@@ -62,7 +62,7 @@ export CONTROL_FILE=commands_beamrider
 #--------- Intel Xeon Phi Options (EXPERIMENTAL) -------------
 export TACC_LAUNCHER_NPHI=0
 export TACC_LAUNCHER_PHI_PPN=8
-export PHI_WORKDIR=.
+export PHI_WORKDIR=$WORK
 export PHI_CONTROL_FILE=phiparamlist
 
 # Variable descriptions:

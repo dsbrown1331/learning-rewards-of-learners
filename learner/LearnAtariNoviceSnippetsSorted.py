@@ -392,4 +392,4 @@ if __name__=="__main__":
 
 
     #TODO:add checkpoints to training process
-    torch.save(reward_net.state_dict(), args.reward_model_path + env_name + ".params")
+    torch.save(reward_net.state_dict(), args.reward_model_path)
