@@ -1,2 +1,3 @@
 module load tacc-singularity
+singularity exec --nv ${SINGULARITY_CACHEDIR}/tacc-maverick-ml-latest.simg python -c "import torch; print(torch.cuda.is_available())"
 singularity exec --nv ${SINGULARITY_CACHEDIR}/tacc-maverick-ml-latest.simg python LearnAtariNoviceSnippetsSorted.py --env_name=beamrider --seed=0 --reward_model_path=$WORK/output/learned_rewards/beamrider_12_sorted_pref.params

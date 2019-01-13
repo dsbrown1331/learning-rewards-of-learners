@@ -142,7 +142,7 @@ def create_launch_file(envname):
     schedule_options = "#SBATCH -J LearnPreferences_" + envname +    "      	# Job name\n"
     
     output_name = "#SBATCH -o /work/05933/dsbrown/maverick/output/logs/LearnPreference_" + envname + ".o%j  # Name of stdout output file (%j expands to jobid) \n"
-    control_file = "export CONTROL_FILE=commands_"+ envname + "\n"
+    control_file = "export CONTROL_FILE=./commands_"+ envname + "\n"
     
     launcher_string = intro_launcher + schedule_options + schedule_other + output_name + batch_rest + control_file + rest_to_end
     print(launcher_string)

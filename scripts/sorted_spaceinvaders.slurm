@@ -43,7 +43,7 @@ module load tacc-singularity
 export TACC_LAUNCHER_PPN=1
 export EXECUTABLE=$TACC_LAUNCHER_DIR/init_launcher
 export WORKDIR=$WORK/Code/learning-rewards-of-learners/learner/
-export CONTROL_FILE=commands_spaceinvaders
+export CONTROL_FILE=./commands_spaceinvaders
  
 
 # Variable descriptions:
