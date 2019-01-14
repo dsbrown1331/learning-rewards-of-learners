@@ -10,9 +10,7 @@ def create_command_file(env_name):
     else:
         env_id = env_name[0].upper() + env_name[1:] + "NoFrameskip-v4"
     command_str = "module load tacc-singularity\n"
-    command_str += "OPENAI_LOG_FORMAT='stdout,log,csv,tensorboard'\n"
-    command_str += "OPENAI_LOGDIR=$WORK/tflogs/"+ env_name + "_sorted-ppo-2\n"
-    command_str += "singularity exec --nv ${SINGULARITY_CACHEDIR}/tacc-maverick-ml-latest.simg python -m baselines.run --alg=ppo2 --env=" + env_id + " --custom_reward pytorch --custom_reward_path $WORK/output/learned_rewards/" + env_name + "_12_sorted_pref.params --num_timesteps=5e7 --save_interval=200\n"
+    command_str += "singularity OPENAI_LOG_FORMAT='stdout,log,csv,tensorboard' OPENAI_LOGDIR=$WORK/tflogs/"+ env_name + "_sorted-ppo-2 exec --nv ${SINGULARITY_CACHEDIR}/tacc-maverick-ml-latest.simg python -m baselines.run --alg=ppo2 --env=" + env_id + " --custom_reward pytorch --custom_reward_path $WORK/output/learned_rewards/" + env_name + "_12_sorted_pref.params --num_timesteps=5e7 --save_interval=200\n"
     print(command_str)
     f = open("commands_RL_" + env_name,'w')
     f.write(command_str)
