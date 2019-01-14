@@ -1,0 +1,3 @@
+module load tacc-singularity
+singularity shell --nv ${SINGULARITY_CACHEDIR}/tacc-maverick-ml-latest.simg
+OPENAI_LOG_FORMAT='stdout,log,csv,tensorboard' OPENAI_LOGDIR=$WORK/tflogs/enduro_sorted-ppo-2 python -m baselines.run --alg=ppo2 --env=EnduroNoFrameskip-v4 --custom_reward pytorch --custom_reward_path $WORK/output/learned_rewards/enduro_12_sorted_pref.params --num_timesteps=5e7 --save_interval=200
