@@ -34,13 +34,13 @@ def mask_score(obs):
     return obs
 
 def generate_novice_demos(env, env_name, agent):
-    checkpoint_min = 50
-    checkpoint_max = 600
-    checkpoint_step = 50
+    checkpoint_min = 25
+    checkpoint_max = 375
+    checkpoint_step = 25
     checkpoints = []
     if env_name == "enduro":
-        checkpoint_min = 3100
-        checkpoint_max = 3650
+        checkpoint_min = 3200
+        checkpoint_max = 3550
     for i in range(checkpoint_min, checkpoint_max + checkpoint_step, checkpoint_step):
         if i < 10:
             checkpoints.append('0000')

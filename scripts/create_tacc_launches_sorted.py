@@ -20,7 +20,7 @@ schedule_other ='''#SBATCH -N 1                   # Total number of nodes (16 co
 '''
 
 batch_rest = '''
-#SBATCH -t 04:00:00            # Run time (hh:mm:ss)
+#SBATCH -t 02:00:00            # Run time (hh:mm:ss)
 #      <------------ Account String ------------>
 # <--- (Use this ONLY if you have MULTIPLE accounts) --->
 #SBATCH -A Deep-supervised-inve 
@@ -141,7 +141,7 @@ def create_launch_file(envname):
     
     schedule_options = "#SBATCH -J LearnPreferences_" + envname +    "      	# Job name\n"
     
-    output_name = "#SBATCH -o /work/05933/dsbrown/maverick/output/logs/LearnPreference_" + envname + ".o%j  # Name of stdout output file (%j expands to jobid) \n"
+    output_name = "#SBATCH -o /work/05933/dsbrown/maverick/output/logs/LearnPreference_25_15" + envname + ".o%j  # Name of stdout output file (%j expands to jobid) \n"
     control_file = "export CONTROL_FILE=commands_"+ envname + "\n"
     
     launcher_string = intro_launcher + schedule_options + schedule_other + output_name + batch_rest + control_file + rest_to_end

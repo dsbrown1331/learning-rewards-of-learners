@@ -16,9 +16,9 @@
 #SBATCH -N 1                   # Total number of nodes (16 cores/node)
 #SBATCH -n 1                  # Total number of tasks
 #SBATCH -p gpu          # Queue name
-#SBATCH -o /work/05933/dsbrown/maverick/output/logs/LearnPreference_videopinball.o%j  # Name of stdout output file (%j expands to jobid) 
+#SBATCH -o /work/05933/dsbrown/maverick/output/logs/LearnPreference_25_15videopinball.o%j  # Name of stdout output file (%j expands to jobid) 
 
-#SBATCH -t 04:00:00            # Run time (hh:mm:ss)
+#SBATCH -t 02:00:00            # Run time (hh:mm:ss)
 #      <------------ Account String ------------>
 # <--- (Use this ONLY if you have MULTIPLE accounts) --->
 #SBATCH -A Deep-supervised-inve 
