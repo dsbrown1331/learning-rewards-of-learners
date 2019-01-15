@@ -85,14 +85,15 @@ def evaluate_learned_policy(env_name, checkpoint):
 if __name__=="__main__":
     parser = argparse.ArgumentParser(description=None)
     parser.add_argument('--seed', default=0, help="random seed for experiments")
+    parser.add_argument('--env_name', default='', help='Select the environment name to run, i.e. pong')
     args = parser.parse_args()
+    env_name = args.env_name
     #set seeds
     seed = int(args.seed)
     torch.manual_seed(seed)
     np.random.seed(seed)
     tf.set_random_seed(seed)
-    envs = ['mspacman', 'videopinball', 'hero', 'beamrider', 'qbert', 'seaquest', 'breakout', 'spaceinvaders', 'pong', 'enduro' ]
-    #envs = ['breakout']
+    env_name =
     checkpoint_num = 15000
     for env_name in envs:
         print("*"*10)
