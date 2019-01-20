@@ -34,17 +34,17 @@ def mask_score(obs):
     return obs
 
 def generate_novice_demos(env, env_name, agent):
-    checkpoint_min = 25
-    checkpoint_max = 375
-    checkpoint_step = 25
+    checkpoint_min = 50
+    checkpoint_max = 600
+    checkpoint_step = 50
     checkpoints = ['00001'  ]
     if env_name == "enduro":
         checkpoint_min = 3200
-        checkpoint_max = 3550
-    elif env_name == "seaquest":
-        checkpoint_min = 5
-        checkpoint_max = 55
-        checkpoint_step = 5
+        checkpoint_max = 3750
+    #elif env_name == "seaquest":
+    #    checkpoint_min = 5
+    #    checkpoint_max = 55
+    #    checkpoint_step = 5
     for i in range(checkpoint_min, checkpoint_max + checkpoint_step, checkpoint_step):
         if i < 10:
             checkpoints.append('0000' + str(i))
@@ -338,11 +338,11 @@ if __name__=="__main__":
     tf.set_random_seed(seed)
 
     print("Training reward for", env_id)
-    n_train = 3000 #number of pairs of trajectories to create
+    n_train = 10000 #number of pairs of trajectories to create
     snippet_length = 50 #length of trajectory for training comparison
     lr = 0.0001
-    weight_decay = 0
-    num_iter = 5
+    weight_decay = 0.0001
+    num_iter = 10
     l1_reg=0.0
     stochastic = True
 
