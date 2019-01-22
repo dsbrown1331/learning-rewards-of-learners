@@ -358,7 +358,7 @@ if __name__=="__main__":
     env = VecFrameStack(env, 4)
     agent = PPO2Agent(env, env_type, stochastic)
 
-    demonstrations, learning_returns, learning_rewards = generate_novice_demos(env, env_name, agent, args.model_dir)
+    demonstrations, learning_returns, learning_rewards = generate_novice_demos(env, env_name, agent, args.models_dir)
     # Let's plot the returns to see if they are roughly monotonically increasing.
     #plt.plot(learning_returns)
     #plt.xlabel("Demonstration")
