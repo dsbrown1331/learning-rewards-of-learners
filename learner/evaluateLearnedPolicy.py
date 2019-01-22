@@ -10,7 +10,7 @@ from run_test import *
 #import matplotlib.pylab as plt
 import argparse
 
-def evaluate_learned_policy(env_name, checkpoint):
+def evaluate_learned_policy(env_name, checkpoint, model_path = None):
     if env_name == "spaceinvaders":
         env_id = "SpaceInvadersNoFrameskip-v4"
     elif env_name == "mspacman":
@@ -24,7 +24,7 @@ def evaluate_learned_policy(env_name, checkpoint):
 
     env_type = "atari"
 
-    stochastic = False
+    stochastic = True
 
     #env id, env type, num envs, and seed
     env = make_vec_env(env_id, 'atari', 1, 0,
@@ -42,11 +42,11 @@ def evaluate_learned_policy(env_name, checkpoint):
     #agent = RandomAgent(env.action_space)
 
     learning_returns = []
-
-    model_path = "/work/05933/dsbrown/maverick/tflogs/" + env_name + "_sorted-ppo-2/checkpoints/" + str(checkpoint_num)
+    if model_path is None:
+        model_path = "/work/05933/dsbrown/maverick/tflogs/" + env_name + "_sorted-ppo-2/checkpoints/" + str(checkpoint_num)
 
     agent.load(model_path)
-    episode_count = 3
+    episode_count = 10
     for i in range(episode_count):
         done = False
         traj = []
@@ -74,7 +74,7 @@ def evaluate_learned_policy(env_name, checkpoint):
 
 
     env.close()
-
+    #tf.reset_default_graph()
 
 
 
@@ -86,6 +86,7 @@ if __name__=="__main__":
     parser = argparse.ArgumentParser(description=None)
     parser.add_argument('--seed', default=0, help="random seed for experiments")
     parser.add_argument('--env_name', default='', help='Select the environment name to run, i.e. pong')
+    parser.add_argument('--model_path', default = None, help='Path and filename for model if not on TACC')
     args = parser.parse_args()
     env_name = args.env_name
     #set seeds
@@ -93,10 +94,9 @@ if __name__=="__main__":
     torch.manual_seed(seed)
     np.random.seed(seed)
     tf.set_random_seed(seed)
-    env_name =
+
     checkpoint_num = 15000
-    for env_name in envs:
-        print("*"*10)
-        print(env_name)
-        print("*"*10)
-        print(evaluate_learned_policy(env_name, checkpoint_num))
+    print("*"*10)
+    print(env_name)
+    print("*"*10)
+    print(evaluate_learned_policy(env_name, checkpoint_num, args.model_path))
