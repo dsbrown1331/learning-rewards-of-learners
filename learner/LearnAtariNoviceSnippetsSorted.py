@@ -219,7 +219,7 @@ class Net(nn.Module):
 # In[111]:
 
 
-def learn_reward(reward_network, optimizer, training_inputs, training_outputs, num_iter, l1_reg):
+def learn_reward(reward_network, optimizer, training_inputs, training_outputs, num_iter, l1_reg, checkpoint_dir):
     #check if gpu available
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     # Assume that we are on a CUDA machine, then this should print a CUDA device:
@@ -261,7 +261,7 @@ def learn_reward(reward_network, optimizer, training_inputs, training_outputs, n
                 print(abs_rewards)
                 cum_loss = 0.0
                 print("check pointing")
-                torch.save(reward_net.state_dict(), args.reward_model_path)
+                torch.save(reward_net.state_dict(), checkpoint_dir)
     print("finished training")
 
 
