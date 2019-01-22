@@ -41,10 +41,10 @@ def generate_novice_demos(env, env_name, agent, model_dir):
     if env_name == "enduro":
         checkpoint_min = 3200
         checkpoint_max = 3750
-    #elif env_name == "seaquest":
-    #    checkpoint_min = 5
-    #    checkpoint_max = 55
-    #    checkpoint_step = 5
+    elif env_name == "seaquest":
+        checkpoint_min = 5
+        checkpoint_max = 55
+        checkpoint_step = 5
     for i in range(checkpoint_min, checkpoint_max + checkpoint_step, checkpoint_step):
         if i < 10:
             checkpoints.append('0000' + str(i))
@@ -260,6 +260,8 @@ def learn_reward(reward_network, optimizer, training_inputs, training_outputs, n
                 print("epoch {}:{} loss {}".format(epoch,i, cum_loss))
                 print(abs_rewards)
                 cum_loss = 0.0
+                print("check pointing")
+                torch.save(reward_net.state_dict(), args.reward_model_path)
     print("finished training")
 
 
@@ -388,7 +390,7 @@ if __name__=="__main__":
     reward_net.to(device)
     import torch.optim as optim
     optimizer = optim.Adam(reward_net.parameters(),  lr=lr, weight_decay=weight_decay)
-    learn_reward(reward_net, optimizer, training_obs, training_labels, num_iter, l1_reg)
+    learn_reward(reward_net, optimizer, training_obs, training_labels, num_iter, l1_reg, args.reward_model_path)
 
     with torch.no_grad():
         pred_returns = [predict_traj_return(reward_net, traj) for traj in demonstrations]
