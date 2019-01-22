@@ -33,17 +33,21 @@ def mask_score(obs):
     obs[:,:n,:,:] = 0
     return obs
 
-def generate_novice_demos(env, env_name, agent):
-    checkpoint_min = 25
-    checkpoint_max = 375
-    checkpoint_step = 25
+def generate_novice_demos(env, env_name, agent, model_dir):
+    checkpoint_min = 50
+    checkpoint_max = 600
+    checkpoint_step = 50
     checkpoints = []
     if env_name == "enduro":
         checkpoint_min = 3200
-        checkpoint_max = 3550
+        checkpoint_max = 3750
+    elif env_name == "seaquest":
+        checkpoint_min = 5
+        checkpoint_max = 60
+        checkpoint_step = 5
     for i in range(checkpoint_min, checkpoint_max + checkpoint_step, checkpoint_step):
         if i < 10:
-            checkpoints.append('0000')
+            checkpoints.append('0000' + str(i))
         elif i < 100:
             checkpoints.append('000' + str(i))
         elif i < 1000:
@@ -59,7 +63,9 @@ def generate_novice_demos(env, env_name, agent):
     learning_rewards = []
     for checkpoint in checkpoints:
 
-        model_path = "./models/" + env_name + "_25/" + checkpoint
+        model_path = model_dir + "/models/" + env_name + "_25/" + checkpoint
+        if env_name == "seaquest":
+            model_path = model_dir + "/models/" + env_name + "_5/" + checkpoint
 
         agent.load(model_path)
         episode_count = 1
@@ -213,7 +219,7 @@ class Net(nn.Module):
 # In[111]:
 
 
-def learn_reward(reward_network, optimizer, training_inputs, training_outputs, num_iter, l1_reg):
+def learn_reward(reward_network, optimizer, training_inputs, training_outputs, num_iter, l1_reg, checkpoint_dir):
     #check if gpu available
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     # Assume that we are on a CUDA machine, then this should print a CUDA device:
@@ -254,6 +260,8 @@ def learn_reward(reward_network, optimizer, training_inputs, training_outputs, n
                 print("epoch {}:{} loss {}".format(epoch,i, cum_loss))
                 print(abs_rewards)
                 cum_loss = 0.0
+                print("check pointing")
+                torch.save(reward_net.state_dict(), checkpoint_dir)
     print("finished training")
 
 
@@ -308,7 +316,8 @@ if __name__=="__main__":
     parser = argparse.ArgumentParser(description=None)
     parser.add_argument('--env_name', default='', help='Select the environment name to run, i.e. pong')
     parser.add_argument('--reward_model_path', default='', help="name and location for learned model params")
-    parser.add_argument('--seed', default='', help="random seed for experiments")
+    parser.add_argument('--seed', default=0, help="random seed for experiments")
+    parser.add_argument('--models_dir', default = ".", help="top directory where checkpoint models for demos are stored")
 
     args = parser.parse_args()
     env_name = args.env_name
@@ -332,11 +341,11 @@ if __name__=="__main__":
     tf.set_random_seed(seed)
 
     print("Training reward for", env_id)
-    n_train = 3000 #number of pairs of trajectories to create
+    n_train = 10000 #number of pairs of trajectories to create
     snippet_length = 50 #length of trajectory for training comparison
     lr = 0.0001
-    weight_decay = 0
-    num_iter = 5
+    weight_decay = 0.0001
+    num_iter = 10
     l1_reg=0.0
     stochastic = True
 
@@ -351,7 +360,7 @@ if __name__=="__main__":
     env = VecFrameStack(env, 4)
     agent = PPO2Agent(env, env_type, stochastic)
 
-    demonstrations, learning_returns, learning_rewards = generate_novice_demos(env, env_name, agent)
+    demonstrations, learning_returns, learning_rewards = generate_novice_demos(env, env_name, agent, args.models_dir)
     # Let's plot the returns to see if they are roughly monotonically increasing.
     #plt.plot(learning_returns)
     #plt.xlabel("Demonstration")
@@ -364,7 +373,7 @@ if __name__=="__main__":
     print(len(learning_returns))
     print(len(demonstrations))
     print([a[0] for a in zip(learning_returns, demonstrations)])
-    #cheat and sort them to see if it helps learning
+    #sort them based on human preferences
     demonstrations = [x for _, x in sorted(zip(learning_returns,demonstrations), key=lambda pair: pair[0])]
 
     sorted_returns = sorted(learning_returns)
@@ -381,7 +390,7 @@ if __name__=="__main__":
     reward_net.to(device)
     import torch.optim as optim
     optimizer = optim.Adam(reward_net.parameters(),  lr=lr, weight_decay=weight_decay)
-    learn_reward(reward_net, optimizer, training_obs, training_labels, num_iter, l1_reg)
+    learn_reward(reward_net, optimizer, training_obs, training_labels, num_iter, l1_reg, args.reward_model_path)
 
     with torch.no_grad():
         pred_returns = [predict_traj_return(reward_net, traj) for traj in demonstrations]
