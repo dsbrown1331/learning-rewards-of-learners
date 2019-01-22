@@ -24,7 +24,7 @@ def evaluate_learned_policy(env_name, checkpoint):
 
     env_type = "atari"
 
-    stochastic = False
+    stochastic = True
 
     #env id, env type, num envs, and seed
     env = make_vec_env(env_id, 'atari', 1, 0,
@@ -46,7 +46,7 @@ def evaluate_learned_policy(env_name, checkpoint):
     model_path = "/work/05933/dsbrown/maverick/tflogs/" + env_name + "_sorted-ppo-2/checkpoints/" + str(checkpoint_num)
 
     agent.load(model_path)
-    episode_count = 3
+    episode_count = 10
     for i in range(episode_count):
         done = False
         traj = []
@@ -93,10 +93,9 @@ if __name__=="__main__":
     torch.manual_seed(seed)
     np.random.seed(seed)
     tf.set_random_seed(seed)
-    env_name =
+    
     checkpoint_num = 15000
-    for env_name in envs:
-        print("*"*10)
-        print(env_name)
-        print("*"*10)
-        print(evaluate_learned_policy(env_name, checkpoint_num))
+    print("*"*10)
+    print(env_name)
+    print("*"*10)
+    print(evaluate_learned_policy(env_name, checkpoint_num))
