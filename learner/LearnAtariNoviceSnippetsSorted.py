@@ -41,10 +41,10 @@ def generate_novice_demos(env, env_name, agent, model_dir):
     if env_name == "enduro":
         checkpoint_min = 3200
         checkpoint_max = 3750
-    #elif env_name == "seaquest":
-    #    checkpoint_min = 5
-    #    checkpoint_max = 55
-    #    checkpoint_step = 5
+    elif env_name == "seaquest":
+        checkpoint_min = 5
+        checkpoint_max = 60
+        checkpoint_step = 5
     for i in range(checkpoint_min, checkpoint_max + checkpoint_step, checkpoint_step):
         if i < 10:
             checkpoints.append('0000' + str(i))
