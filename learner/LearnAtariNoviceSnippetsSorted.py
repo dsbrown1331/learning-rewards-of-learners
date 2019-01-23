@@ -15,6 +15,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from run_test import *
+import matplotlib.pyplot as plt
 #import matplotlib.pylab as plt
 
 def normalize_state(obs):
@@ -26,11 +27,16 @@ def normalize_state(obs):
     return obs / 255.0
 
 
-def mask_score(obs):
-    #takes a stack of four observations and blacks out (sets to zero) top n rows
-    n = 10
-    #no_score_obs = copy.deepcopy(obs)
-    obs[:,:n,:,:] = 0
+def mask_score(obs, crop_top = True):
+    print(obs.shape)
+    if crop_top:
+        #takes a stack of four observations and blacks out (sets to zero) top n rows
+        n = 10
+        #no_score_obs = copy.deepcopy(obs)
+        obs[:,:n,:,:] = 0
+    else:
+        n = 20
+        obs[:,-n:,:,:] = 0
     return obs
 
 def generate_novice_demos(env, env_name, agent, model_dir):
@@ -38,13 +44,20 @@ def generate_novice_demos(env, env_name, agent, model_dir):
     checkpoint_max = 600
     checkpoint_step = 50
     checkpoints = []
+    crop_top = True
     if env_name == "enduro":
         checkpoint_min = 3200
         checkpoint_max = 3750
+        crop_top = False
     elif env_name == "seaquest":
         checkpoint_min = 10
         checkpoint_max = 65
         checkpoint_step = 5
+    elif env_name == "pong":
+        checkpoint_min = 50
+        checkpoint_step = 75
+        checkpoint_max = 875
+
     for i in range(checkpoint_min, checkpoint_max + checkpoint_step, checkpoint_step):
         if i < 10:
             checkpoints.append('0000' + str(i))
@@ -84,7 +97,11 @@ def generate_novice_demos(env, env_name, agent, model_dir):
                 action = agent.act(ob, r, done)
                 ob, r, done, _ = env.step(action)
                 #print(ob.shape)
-                traj.append(mask_score(normalize_state(ob)))
+                traj.append(mask_score(normalize_state(ob), crop_top))
+                plt.figure(1)
+                plt.imshow(traj[-1][0][:,:,0])
+                plt.show()
+
                 gt_rewards.append(r[0])
                 steps += 1
                 acc_reward += r[0]
