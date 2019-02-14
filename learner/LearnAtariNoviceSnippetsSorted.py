@@ -15,7 +15,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from run_test import *
-import matplotlib.pyplot as plt
 #import matplotlib.pylab as plt
 
 def normalize_state(obs):
@@ -28,7 +27,6 @@ def normalize_state(obs):
 
 
 def mask_score(obs, crop_top = True):
-    print(obs.shape)
     if crop_top:
         #takes a stack of four observations and blacks out (sets to zero) top n rows
         n = 10
@@ -93,9 +91,6 @@ def generate_novice_demos(env, env_name, agent, model_dir):
                 ob, r, done, _ = env.step(action)
                 #print(ob.shape)
                 traj.append(mask_score(normalize_state(ob), crop_top))
-                plt.figure(1)
-                plt.imshow(traj[-1][0][:,:,0])
-                plt.show()
 
                 gt_rewards.append(r[0])
                 steps += 1
