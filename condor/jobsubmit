@@ -24,7 +24,6 @@ Notification = Complete
 
 getenv = true
 
-Initialdir = {current_dir}
 Executable = {executable}
 Arguments = {args} --log_dir ./logs/{now}/tf
 
