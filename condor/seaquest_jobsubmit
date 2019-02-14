@@ -1,6 +1,6 @@
 +Group   = "GRAD"
 +Project = "AI_ROBOTICS"
-+ProjectDescription = "."
++ProjectDescription = "Learning from suboptimal demonstrations"
 +GPUJob = true
 
 universe = vanilla
