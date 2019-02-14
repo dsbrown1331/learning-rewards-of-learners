@@ -4,7 +4,7 @@
 +GPUJob = true
 
 universe = vanilla
-Requirements = (TARGET.GPUSlot) && (CUDAGlobalMemoryMb >= 10000) && NumJobStarts == 0
+Requirements=(TARGET.GTX1080==true)
 request_GPUs = 1
 
 notify_user = dsbrown
@@ -12,8 +12,8 @@ Notification = Complete
 
 getenv = true
 
-Executable = run_atari_rl
-Arguments = $(Process) seaquest
+Executable = run_seaquest_rl
+Arguments = $(Process)
 
 Error = /scratch/cluster/dsbrown/CondorOutput/seaquest_$(Process)_err
 Output = /scratch/cluster/dsbrown/CondorOutput/seaquest_$(Process)_out
