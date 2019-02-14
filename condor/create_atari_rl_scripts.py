@@ -1,0 +1,31 @@
+def create_script_file(env_name):
+    if env_name == "spaceinvaders":
+        env_id = "SpaceInvadersNoFrameskip-v4"
+    elif env_name == "mspacman":
+        env_id = "MsPacmanNoFrameskip-v4"
+    elif env_name == "videopinball":
+        env_id = "VideoPinballNoFrameskip-v4"
+    elif env_name == "beamrider":
+        env_id = "BeamRiderNoFrameskip-v4"
+    else:
+        env_id = env_name[0].upper() + env_name[1:] + "NoFrameskip-v4"
+    
+    script = '#!/usr/bin/env bash\n'
+    script += 'source ~/.bashrc\n'
+    script += 'conda activate deeplearning\n'
+    script += "OPENAI_LOG_FORMAT='stdout,log,csv,tensorboard' OPENAI_LOGDIR=/scratch/cluster/dsbrown/tflogs/" + env_name + "_$1 python -m baselines.run --alg=ppo2 --env=" + env_id + " --custom_reward pytorch --custom_reward_path /u/dsbrown/Code/learning-rewards-of-learners/learner/learned_models/" + env_name + "_12_sorted_pref.params --num_timesteps=5e7 --save_interval=200 --seed $1"
+    
+    print(script)
+    f = open("run_" + env_name + "_rl",'w')
+    f.write(script)
+    f.close()
+    
+
+#envs = ['mspacman', 'videopinball', 'hero', 'beamrider', 'qbert', 'seaquest', 'breakout', 'spaceinvaders', 'pong', 'enduro' ]
+envs = ['mspacman', 'videopinball', 'hero', 'beamrider', 'qbert', 'breakout', 'spaceinvaders', 'pong', 'enduro' ]
+#envs = ['mspacman']
+for e in envs:
+    print("+"*20)
+    print(e)
+    print("+"*20)
+    create_script_file(e)
