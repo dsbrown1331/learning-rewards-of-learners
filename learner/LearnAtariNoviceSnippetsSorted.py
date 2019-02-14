@@ -46,18 +46,13 @@ def generate_novice_demos(env, env_name, agent, model_dir):
     checkpoints = []
     crop_top = True
     if env_name == "enduro":
-        checkpoint_min = 3200
-        checkpoint_max = 3750
+        checkpoint_min = 3100
+        checkpoint_max = 3650
         crop_top = False
     elif env_name == "seaquest":
         checkpoint_min = 10
         checkpoint_max = 65
         checkpoint_step = 5
-    elif env_name == "pong":
-        checkpoint_min = 50
-        checkpoint_step = 75
-        checkpoint_max = 875
-
     for i in range(checkpoint_min, checkpoint_max + checkpoint_step, checkpoint_step):
         if i < 10:
             checkpoints.append('0000' + str(i))
@@ -358,11 +353,11 @@ if __name__=="__main__":
     tf.set_random_seed(seed)
 
     print("Training reward for", env_id)
-    n_train = 3000 #number of pairs of trajectories to create
+    n_train = 30 #TODO: change to 3000 #number of pairs of trajectories to create
     snippet_length = 50 #length of trajectory for training comparison
     lr = 0.0001
     weight_decay = 0.0
-    num_iter = 5
+    num_iter = 1 #TODO: change to 5
     l1_reg=0.0
     stochastic = True
 
