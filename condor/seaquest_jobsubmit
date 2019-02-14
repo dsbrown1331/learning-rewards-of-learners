@@ -1,17 +1,3 @@
-#!/usr/bin/env python
-
-"""
-A very simple wrapper for a function call, making a corresponding condor script
-and submitting it.
-"""
-
-import os, sys
-from datetime import datetime
-from pathlib import Path
-
-TEST = True
-
-job_desc = """
 +Group   = "GRAD"
 +Project = "AI_ROBOTICS"
 +ProjectDescription = "."
@@ -34,11 +20,4 @@ Output = /scratch/cluster/dsbrown/CondorOutput/seaquest_$(Process)_out
 Log = /scratch/cluster/dsbrown/CondorOutput/seaquest_$(Process)_condor.log
 
 Queue 2
-"""
 
-if TEST:
-    print(job_desc)
-else:
-    proc = subprocess.Popen('condor_submit', stdin=subprocess.PIPE)
-    proc.stdin.write(job_desc)
-    proc.stdin.close()
