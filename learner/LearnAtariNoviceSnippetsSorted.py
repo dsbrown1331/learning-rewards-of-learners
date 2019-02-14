@@ -15,7 +15,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from run_test import *
-#import matplotlib.pylab as plt
 
 def normalize_state(obs):
     obs_highs = env.observation_space.high
