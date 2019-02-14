@@ -25,7 +25,7 @@ Notification = Complete
 getenv = true
 
 Initialdir = {current_dir}
-Executable = {exec}
+Executable = {executable}
 Arguments = {args} --log_dir ./logs/{now}/tf
 
 Error = /scratch/cluster/dsbrown/CondorOutput/{now}/err
@@ -46,6 +46,6 @@ path = Path('logs')/now
 path.mkdir(parents=True)
 
 with open(str(path/'job_desc'),'w') as f:
-    f.write(job_desc.format(current_dir=current_dir,exec=target_exec,args=args,now=now))
+    f.write(job_desc.format(current_dir=current_dir,executable=target_exec,args=args,now=now))
 
 os.popen('/lusr/opt/condor/bin/condor_submit %s'%str(path/'job_desc'))
