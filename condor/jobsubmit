@@ -1,0 +1,51 @@
+#!/usr/bin/env python
+
+"""
+A very simple wrapper for a function call, making a corresponding condor script
+and submitting it.
+"""
+
+import os, sys
+from datetime import datetime
+from pathlib import Path
+
+job_desc = """
++Group   = "GRAD"
++Project = "AI_ROBOTICS"
++ProjectDescription = "."
++GPUJob = true
+
+universe = vanilla
+Requirements = (TARGET.GPUSlot) && (CUDAGlobalMemoryMb >= 10000) && NumJobStarts == 0
+request_GPUs = 1
+
+notify_user = dsbrown
+Notification = Complete
+
+getenv = true
+
+Initialdir = {current_dir}
+Executable = {exec}
+Arguments = {args} --log_dir ./logs/{now}/tf
+
+Error = /scratch/cluster/dsbrown/CondorOutput/{now}/err
+Output = /scratch/cluster/dsbrown/CondorOutput/{now}/out
+Log = /scratch/cluster/dsbrown/CondorOutput/condor.log
+
+Queue
+"""
+
+target_exec = sys.argv[1]
+args = ' '.join(sys.argv[2:])
+
+current_dir= os.popen('/bin/pwd').read()
+target_exec = os.popen('/bin/which %s' % target_exec).read()
+now = datetime.now().strftime("%Y-%m-%d-%H:%M:%S")
+
+path = Path('logs')/now
+path.mkdir(parents=True)
+
+with open(str(path/'job_desc'),'w') as f:
+    f.write(job_desc.format(current_dir=current_dir,exec=target_exec,args=args,now=now))
+
+os.popen('/lusr/opt/condor/bin/condor_submit %s'%str(path/'job_desc'))
