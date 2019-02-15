@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 source ~/.bashrc
 conda activate deeplearning
-OPENAI_LOG_FORMAT='stdout,log,csv,tensorboard' OPENAI_LOGDIR=/scratch/cluster/dsbrown/tflogs/beamrider20env_$1 python -m baselines.run --alg=ppo2 --env=BeamRiderNoFrameskip-v4 --custom_reward pytorch --custom_reward_path /u/dsbrown/Code/learning-rewards-of-learners/learner/learned_models/beamrider_12_sorted_pref.params--num_timesteps=5e7 --save_interval=200 --seed $1 --num_env 20
+OPENAI_LOG_FORMAT='stdout,log,csv,tensorboard' OPENAI_LOGDIR=/scratch/cluster/dsbrown/tflogs/beamrider20env_$1 python -m baselines.run --alg=ppo2 --env=BeamRiderNoFrameskip-v4 --custom_reward pytorch --custom_reward_path /u/dsbrown/Code/learning-rewards-of-learners/learner/learned_models/beamrider_12_sorted_pref.params --num_timesteps=5e7 --save_interval=200 --seed $1 --num_env 20
