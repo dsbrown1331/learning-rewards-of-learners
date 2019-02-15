@@ -22,8 +22,8 @@ def create_script_file(env_name):
     
 
 #envs = ['mspacman', 'videopinball', 'hero', 'beamrider', 'qbert', 'seaquest', 'breakout', 'spaceinvaders', 'pong', 'enduro' ]
-envs = ['mspacman', 'videopinball', 'hero', 'beamrider', 'qbert', 'breakout', 'spaceinvaders', 'pong', 'enduro' ]
-#envs = ['mspacman']
+envs = ['hero', 'beamrider', 'qbert', 'breakout', 'spaceinvaders', 'pong', 'enduro', 'seaquest' ]
+
 for e in envs:
     print("+"*20)
     print(e)

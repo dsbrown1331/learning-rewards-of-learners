@@ -1,7 +1,8 @@
 #! /usr/bin/env bash
 
 #already ran seaquest.. Add back in later
-for i in beamrider breakout enduro hero mspacman pong qbert spaceinvaders videopinball; do 
-    echo "condor_submit $i_jobsubmit"
-    condor_submit $i_jobsubmit
+for i in beamrider breakout enduro hero pong qbert spaceinvaders seaquest; do 
+    job="$i""_jobsubmit"
+    echo $job
+    condor_submit $job
 done
