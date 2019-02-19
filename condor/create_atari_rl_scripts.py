@@ -13,7 +13,12 @@ def create_script_file(env_name):
     script = '#!/usr/bin/env bash\n'
     script += 'source ~/.bashrc\n'
     script += 'conda activate deeplearning\n'
-    script += "OPENAI_LOG_FORMAT='stdout,log,csv,tensorboard' OPENAI_LOGDIR=/scratch/cluster/dsbrown/tflogs/" + env_name + "_$1 python -m baselines.run --alg=ppo2 --env=" + env_id + " --custom_reward pytorch --custom_reward_path /u/dsbrown/Code/learning-rewards-of-learners/learner/learned_models/" + env_name + "_12_sorted_pref.params --num_timesteps=5e7 --save_interval=200 --seed $1"
+    script += "OPENAI_LOG_FORMAT='stdout,log,csv,tensorboard' OPENAI_LOGDIR=/scratch/cluster/dsbrown/tflogs/" + env_name + "20env_$1 python -m baselines.run --alg=ppo2 --env=" + env_id + " --custom_reward pytorch --custom_reward_path /u/dsbrown/Code/learning-rewards-of-learners/learner/learned_models/"
+    if env_name == "seaquest":
+        script += env_name + "_12_5_sorted_pref.params"
+    else:
+        script += env_name + "_12_sorted_pref.params"
+    script +=  " --num_timesteps=4e7 --save_interval=200 --num_env 20"
     
     print(script)
     f = open("run_" + env_name + "_rl",'w')
@@ -22,8 +27,8 @@ def create_script_file(env_name):
     
 
 #envs = ['mspacman', 'videopinball', 'hero', 'beamrider', 'qbert', 'seaquest', 'breakout', 'spaceinvaders', 'pong', 'enduro' ]
-envs = ['mspacman', 'videopinball', 'hero', 'beamrider', 'qbert', 'breakout', 'spaceinvaders', 'pong', 'enduro' ]
-#envs = ['mspacman']
+envs = ['hero', 'beamrider', 'qbert', 'breakout', 'spaceinvaders', 'pong', 'enduro', 'seaquest' ]
+
 for e in envs:
     print("+"*20)
     print(e)

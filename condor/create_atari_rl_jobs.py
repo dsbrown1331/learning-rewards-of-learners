@@ -14,10 +14,10 @@ def create_submit_file(env_name):
     submit_file += 'getenv = true\n'
     submit_file += 'Executable = run_' + env_name + '_rl\n'
     submit_file += 'Arguments = $(Process)\n'
-    submit_file += 'Error = /scratch/cluster/dsbrown/CondorOutput/' + env_name + '_$(Process)_err\n'
-    submit_file += 'Output = /scratch/cluster/dsbrown/CondorOutput/' + env_name + '_$(Process)_out\n'
-    submit_file += 'Log = /scratch/cluster/dsbrown/CondorOutput/' + env_name + '_$(Process)_condor.log\n'   
-    submit_file += 'Queue 5\n'
+    submit_file += 'Error = /scratch/cluster/dsbrown/CondorOutput/' + env_name + '20env_$(Process)_err\n'
+    submit_file += 'Output = /scratch/cluster/dsbrown/CondorOutput/' + env_name + '20env_$(Process)_out\n'
+    submit_file += 'Log = /scratch/cluster/dsbrown/CondorOutput/' + env_name + '20env_$(Process)_condor.log\n'   
+    submit_file += 'Queue\n'
     print(submit_file)
     f = open(env_name + "_jobsubmit",'w')
     f.write(submit_file)
@@ -26,7 +26,7 @@ def create_submit_file(env_name):
     
  
 #envs = ['mspacman', 'videopinball', 'hero', 'beamrider', 'qbert', 'seaquest', 'breakout', 'spaceinvaders', 'pong', 'enduro' ]
-envs = ['mspacman', 'videopinball', 'hero', 'beamrider', 'qbert', 'breakout', 'spaceinvaders', 'pong', 'enduro' ]
+envs = ['hero', 'beamrider', 'qbert', 'breakout', 'spaceinvaders', 'pong', 'enduro', 'seaquest' ]
 #envs = ['mspacman']
 for e in envs:
     print("+"*20)
