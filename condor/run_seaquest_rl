@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 source ~/.bashrc
 conda activate deeplearning
-OPENAI_LOG_FORMAT='stdout,log,csv,tensorboard' OPENAI_LOGDIR=/scratch/cluster/dsbrown/tflogs/seaquest20env_$1 python -m baselines.run --alg=ppo2 --env=SeaquestNoFrameskip-v4 --custom_reward pytorch --custom_reward_path /u/dsbrown/Code/learning-rewards-of-learners/learner/learned_models/seaquest_12_5_sorted_pref.params --num_timesteps=4e7 --save_interval=200 --num_env 20
+OPENAI_LOG_FORMAT='stdout,log,csv,tensorboard' OPENAI_LOGDIR=/scratch/cluster/dsbrown/tflogs/seaquest20env_$1 python -m baselines.run --alg=ppo2 --env=SeaquestNoFrameskip-v4 --custom_reward pytorch --custom_reward_path /u/dsbrown/Code/learning-rewards-of-learners/learner/learned_models/seaquest_12_5_sorted_pref.params --seed $1 --num_timesteps=4e7 --save_interval=200 --num_env 20

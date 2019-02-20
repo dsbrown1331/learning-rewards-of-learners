@@ -18,7 +18,7 @@ def create_script_file(env_name):
         script += env_name + "_12_5_sorted_pref.params"
     else:
         script += env_name + "_12_sorted_pref.params"
-    script +=  " --num_timesteps=4e7 --save_interval=200 --num_env 20"
+    script +=  " --seed $1 --num_timesteps=4e7 --save_interval=200 --num_env 20"
     
     print(script)
     f = open("run_" + env_name + "_rl",'w')
