@@ -42,8 +42,8 @@ def evaluate_learned_policy(env_name, checkpoint, rep):
     #agent = RandomAgent(env.action_space)
 
     learning_returns = []
-    #model_path = "/scratch/cluster/dsbrown/tflogs/" + env_name + "20env_" + str(rep) + "/checkpoints/" + checkpoint
-    model_path = "/home/dsbrown/Code/learning-rewards-of-learners/learner/models/spaceinvaders/checkpoints/" + checkpoint
+    model_path = "/scratch/cluster/dsbrown/tflogs/" + env_name + "20env_" + str(rep) + "/checkpoints/" + checkpoint
+    #model_path = "/home/dsbrown/Code/learning-rewards-of-learners/learner/models/spaceinvaders/checkpoints/" + checkpoint
     print(model_path)
 
     agent.load(model_path)
