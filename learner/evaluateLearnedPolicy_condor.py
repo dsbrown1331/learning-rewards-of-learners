@@ -42,7 +42,8 @@ def evaluate_learned_policy(env_name, checkpoint, rep):
     #agent = RandomAgent(env.action_space)
 
     learning_returns = []
-    model_path = "/scratch/cluster/dsbrown/tflogs/" + env_name + "20env_" + str(rep) + "/checkpoints/" + checkpoint
+    #model_path = "/scratch/cluster/dsbrown/tflogs/" + env_name + "20env_" + str(rep) + "/checkpoints/" + checkpoint
+    model_path = "/home/dsbrown/Code/learning-rewards-of-learners/learner/models/spaceinvaders/checkpoints/" + checkpoint
     print(model_path)
 
     agent.load(model_path)
@@ -78,14 +79,16 @@ def evaluate_learned_policy(env_name, checkpoint, rep):
 
 
 
-    print(learning_returns)
+    return learning_returns
 
-    return([np.max(learning_returns), np.min(learning_returns), np.mean(learning_returns)])
+    #return([np.max(learning_returns), np.min(learning_returns), np.mean(learning_returns)])
 
 if __name__=="__main__":
     parser = argparse.ArgumentParser(description=None)
     parser.add_argument('--seed', default=1234, help="random seed for experiments")
     parser.add_argument('--env_name', default='', help='Select the environment name to run, i.e. pong')
+    parser.add_argument('--checkpoint', default='', help='checkpoint to run eval on')
+    parser.add_argument('--rep', default='', help='which trial to evaluate')
     args = parser.parse_args()
     env_name = args.env_name
     #set seeds
@@ -94,9 +97,14 @@ if __name__=="__main__":
     np.random.seed(seed)
     tf.set_random_seed(seed)
 
-    checkpoint = '09800'
+    checkpoint = args.checkpoint
+    rep = args.rep
     print("*"*10)
     print(env_name)
     print("*"*10)
-    for rep in range(5):
-        print(evaluate_learned_policy(env_name, checkpoint, rep))
+    returns = evaluate_learned_policy(env_name, checkpoint, rep)
+    #write returns to file
+    f = open("./eval/" + env_name + "_" + checkpoint + "_" + rep + "eval.txt",'w')
+    for r in returns:
+        f.write(r + "\n")
+    f.close()
