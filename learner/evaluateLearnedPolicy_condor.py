@@ -24,7 +24,7 @@ def evaluate_learned_policy(env_name, checkpoint, rep):
 
     env_type = "atari"
 
-    stochastic = True
+    stochastic = False
 
     #env id, env type, num envs, and seed
     env = make_vec_env(env_id, 'atari', 1, 0,
@@ -42,7 +42,8 @@ def evaluate_learned_policy(env_name, checkpoint, rep):
     #agent = RandomAgent(env.action_space)
 
     learning_returns = []
-    model_path = "/scratch/cluster/dsbrown/tflogs/" + env_name + "20env_" + rep + "/checkpoints" + str(checkpoint_num)
+    model_path = "/scratch/cluster/dsbrown/tflogs/" + env_name + "20env_" + str(rep) + "/checkpoints/" + checkpoint
+    print(model_path)
 
     agent.load(model_path)
     episode_count = 5
@@ -93,9 +94,9 @@ if __name__=="__main__":
     np.random.seed(seed)
     tf.set_random_seed(seed)
 
-    checkpoint_num = 15000
+    checkpoint = '09800'
     print("*"*10)
     print(env_name)
     print("*"*10)
     for rep in range(5):
-        print(evaluate_learned_policy(env_name, checkpoint_num, rep))
+        print(evaluate_learned_policy(env_name, checkpoint, rep))
