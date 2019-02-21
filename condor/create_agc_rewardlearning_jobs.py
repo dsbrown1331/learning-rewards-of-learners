@@ -18,7 +18,7 @@ def create_submit_file(env_name):
     submit_file += 'Log = /scratch/cluster/dsbrown/CondorOutput/' + env_name + '_   learn_reward_condor.log\n'   
     submit_file += 'Queue\n'
     print(submit_file)
-    f = open(env_name + "_jobsubmit",'w')
+    f = open(env_name + "_trex_jobsubmit",'w')
     f.write(submit_file)
     f.close()
     

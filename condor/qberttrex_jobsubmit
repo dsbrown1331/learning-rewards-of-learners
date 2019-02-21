@@ -1,0 +1,15 @@
++Group   = "GRAD"
++Project = "AI_ROBOTICS"
++ProjectDescription = "Learning from suboptimal demonstrations"
++GPUJob = true
+universe = vanilla
+Requirements=(TARGET.GTX1080==true)
+request_GPUs = 1
+notify_user = dsbrown
+Notification = Complete
+getenv = true
+Executable = trex_qbert
+Error = /scratch/cluster/dsbrown/CondorOutput/qbert_learn_reward_err
+Output = /scratch/cluster/dsbrown/CondorOutput/qbert_learn_reward_out
+Log = /scratch/cluster/dsbrown/CondorOutput/qbert_   learn_reward_condor.log
+Queue
