@@ -13,21 +13,16 @@ def create_script_file(env_name):
     script = '#!/usr/bin/env bash\n'
     script += 'source ~/.bashrc\n'
     script += 'conda activate deeplearning\n'
-    script += "OPENAI_LOG_FORMAT='stdout,log,csv,tensorboard' OPENAI_LOGDIR=/scratch/cluster/dsbrown/tflogs/" + env_name + "20env_$1 python -m baselines.run --alg=ppo2 --env=" + env_id + " --custom_reward pytorch --custom_reward_path /u/dsbrown/Code/learning-rewards-of-learners/learner/learned_models/"
-    if env_name == "seaquest":
-        script += env_name + "_12_5_sorted_pref.params"
-    else:
-        script += env_name + "_12_sorted_pref.params"
-    script +=  " --seed $1 --num_timesteps=4e7 --save_interval=200 --num_env 20"
-    
+    script += 'cd ../learner/\n'
+    script += "python LearnAtariHumanSnippetsSorted.py --env_name " + env_name + " --reward_model_path ./learned_models/" + env_name + "_human.params --data_dir /scratch/cluster/dsbrown/atari_v1/"
     print(script)
-    f = open("run_" + env_name + "_rl",'w')
+    f = open("trex_" + env_name,'w')
     f.write(script)
     f.close()
     
 
 #envs = ['mspacman', 'videopinball', 'hero', 'beamrider', 'qbert', 'seaquest', 'breakout', 'spaceinvaders', 'pong', 'enduro' ]
-envs = ['hero', 'beamrider', 'qbert', 'breakout', 'spaceinvaders', 'pong', 'enduro', 'seaquest' ]
+envs = ['qbert', 'spaceinvaders', 'mspacman']
 
 for e in envs:
     print("+"*20)

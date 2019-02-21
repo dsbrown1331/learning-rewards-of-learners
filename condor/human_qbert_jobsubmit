@@ -8,9 +8,9 @@ request_GPUs = 1
 notify_user = dsbrown
 Notification = Complete
 getenv = true
-Executable = run_hero_rl
+Executable = run_human_qbert_rl
 Arguments = $(Process)
-Error = /scratch/cluster/dsbrown/CondorOutput/hero20env_$(Process)_err
-Output = /scratch/cluster/dsbrown/CondorOutput/hero20env_$(Process)_out
-Log = /scratch/cluster/dsbrown/CondorOutput/hero20env_$(Process)_condor.log
+Error = /scratch/cluster/dsbrown/CondorOutput/human_qbert20env_$(Process)_err
+Output = /scratch/cluster/dsbrown/CondorOutput/human_qbert20env_$(Process)_out
+Log = /scratch/cluster/dsbrown/CondorOutput/human_qbert20env_$(Process)_condor.log
 Queue 5
