@@ -106,5 +106,5 @@ if __name__=="__main__":
     #write returns to file
     f = open("./eval/" + env_name + "_" + checkpoint + "_" + rep + "eval.txt",'w')
     for r in returns:
-        f.write(r + "\n")
+        f.write("{}\n".format(r))
     f.close()
