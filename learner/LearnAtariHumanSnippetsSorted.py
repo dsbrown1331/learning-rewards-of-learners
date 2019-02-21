@@ -325,6 +325,7 @@ if __name__=="__main__":
     parser.add_argument('--reward_model_path', default='', help="name and location for learned model params")
     parser.add_argument('--seed', default=0, help="random seed for experiments")
     parser.add_argument('--models_dir', default = ".", help="top directory where checkpoint models for demos are stored")
+    parser.add_argument('--data_dir', help="where agc data is located")
 
     args = parser.parse_args()
     env_name = args.env_name
@@ -376,7 +377,9 @@ if __name__=="__main__":
     env = VecFrameStack(env, 4)
     agent = PPO2Agent(env, env_type, stochastic)
 
-    demonstrations, learning_returns = agc_demos.get_preprocessed_trajectories(agc_env_name)
+    data_dir = args.data_dir
+    dataset = ds.AtariDataset(data_dir)
+    demonstrations, learning_returns = agc_demos.get_preprocessed_trajectories(agc_env_name, dataset, data_dir)
 
     # Let's plot the returns to see if they are roughly monotonically increasing.
     #plt.plot(learning_returns)
