@@ -7,7 +7,20 @@ cv2.ocl.setUseOpenCL(False)
 #import matplotlib.pyplot as plt
 import argparse
 
+def normalize_state(obs):
+    return obs / 255.0
 
+
+def mask_score(obs, crop_top = True):
+    if crop_top:
+        #takes a stack of four observations and blacks out (sets to zero) top n rows
+        n = 10
+        #no_score_obs = copy.deepcopy(obs)
+        obs[:,:n,:,:] = 0
+    else:
+        n = 20
+        obs[:,-n:,:,:] = 0
+    return obs
 
 #need to grayscale and warp to 84x84
 def GrayScaleWarpImage(image):
@@ -117,6 +130,11 @@ def get_preprocessed_trajectories(env_name, dataset, data_dir):
        top section of screen is masked
     """
 
+    #mspacman score is on the bottom of the screen
+    if env_name == 'mspacman':
+        crop_top = False
+    else:
+        crop_top = True
 
     print("generating human demos for", env_name)
     demos = get_sorted_traj_indices(env_name, dataset)
@@ -128,7 +146,11 @@ def get_preprocessed_trajectories(env_name, dataset, data_dir):
         #print("generating traj from", traj_dir)
         maxed_traj = MaxSkipAndWarpFrames(traj_dir)
         stacked_traj = StackFrames(maxed_traj)
-        human_demos.append(stacked_traj)
+        demo_norm_mask = []
+        #normalize values to be between 0 and 1 and have top part masked
+        for ob in stacked_traj:
+            demo_norm_mask.append(mask_score(normalize_state(ob), crop_top))
+        human_demos.append(demo_norm_mask)
     return human_demos, human_scores
 
 
@@ -146,3 +168,4 @@ if __name__ == "__main__":
     dataset = ds.AtariDataset(data_dir)
     human_demos, human_scores = get_preprocessed_trajectories(env_name, dataset, data_dir)
     print(human_scores)
+    print(human_demos[0][0])

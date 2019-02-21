@@ -1,4 +1,5 @@
 import argparse
+import agc.dataset as ds
 # coding: utf-8
 
 # Take length 50 snippets and record the cumulative return for each one. Then determine ground truth labels based on this.
@@ -16,96 +17,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 from run_test import *
 import agc_demos
-
-def normalize_state(obs):
-    obs_highs = env.observation_space.high
-    obs_lows = env.observation_space.low
-    #print(obs_highs)
-    #print(obs_lows)
-    #return  2.0 * (obs - obs_lows) / (obs_highs - obs_lows) - 1.0
-    return obs / 255.0
-
-
-def mask_score(obs, crop_top = True):
-    if crop_top:
-        #takes a stack of four observations and blacks out (sets to zero) top n rows
-        n = 10
-        #no_score_obs = copy.deepcopy(obs)
-        obs[:,:n,:,:] = 0
-    else:
-        n = 20
-        obs[:,-n:,:,:] = 0
-    return obs
-
-def generate_novice_demos(env, env_name, agent, model_dir):
-    checkpoint_min = 50
-    checkpoint_max = 600
-    checkpoint_step = 50
-    checkpoints = []
-    crop_top = True
-    if env_name == "enduro":
-        checkpoint_min = 3100
-        checkpoint_max = 3650
-        crop_top = False
-    elif env_name == "seaquest":
-        checkpoint_min = 10
-        checkpoint_max = 65
-        checkpoint_step = 5
-    for i in range(checkpoint_min, checkpoint_max + checkpoint_step, checkpoint_step):
-        if i < 10:
-            checkpoints.append('0000' + str(i))
-        elif i < 100:
-            checkpoints.append('000' + str(i))
-        elif i < 1000:
-            checkpoints.append('00' + str(i))
-        elif i < 10000:
-            checkpoints.append('0' + str(i))
-    print(checkpoints)
-
-
-
-    demonstrations = []
-    learning_returns = []
-    learning_rewards = []
-    for checkpoint in checkpoints:
-
-        model_path = model_dir + "/models/" + env_name + "_25/" + checkpoint
-        if env_name == "seaquest":
-            model_path = model_dir + "/models/" + env_name + "_5/" + checkpoint
-
-        agent.load(model_path)
-        episode_count = 1
-        for i in range(episode_count):
-            done = False
-            traj = []
-            gt_rewards = []
-            r = 0
-
-            ob = env.reset()
-            #traj.append(ob)
-            #print(ob.shape)
-            steps = 0
-            acc_reward = 0
-            while True:
-                action = agent.act(ob, r, done)
-                ob, r, done, _ = env.step(action)
-                #print(ob.shape)
-                traj.append(mask_score(normalize_state(ob), crop_top))
-
-                gt_rewards.append(r[0])
-                steps += 1
-                acc_reward += r[0]
-                if done:
-                    print("checkpoint: {}, steps: {}, return: {}".format(checkpoint, steps,acc_reward))
-                    break
-            print("traj length", len(traj))
-            print("demo length", len(demonstrations))
-            demonstrations.append(traj)
-            learning_returns.append(acc_reward)
-            learning_rewards.append(gt_rewards)
-
-    return demonstrations, learning_returns, learning_rewards
-
 
 
 
