@@ -8,9 +8,8 @@ request_GPUs = 1
 notify_user = dsbrown
 Notification = Complete
 getenv = true
-Executable = run_spaceinvaders_rl
-Arguments = $(Process)
-Error = /scratch/cluster/dsbrown/CondorOutput/spaceinvaders20env_$(Process)_err
-Output = /scratch/cluster/dsbrown/CondorOutput/spaceinvaders20env_$(Process)_out
-Log = /scratch/cluster/dsbrown/CondorOutput/spaceinvaders20env_$(Process)_condor.log
-Queue 5
+Executable = trex_spaceinvaders
+Error = /scratch/cluster/dsbrown/CondorOutput/spaceinvaders_learn_reward_err
+Output = /scratch/cluster/dsbrown/CondorOutput/spaceinvaders_learn_reward_out
+Log = /scratch/cluster/dsbrown/CondorOutput/spaceinvaders_   learn_reward_condor.log
+Queue

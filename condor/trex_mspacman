@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+source ~/.bashrc
+conda activate deeplearning
+cd ../learner/
+python LearnAtariHumanSnippetsSorted.py --env_name mspacman --reward_model_path ./learned_models/mspacman_human.params --data_dir /scratch/cluster/dsbrown/atari_v1/
