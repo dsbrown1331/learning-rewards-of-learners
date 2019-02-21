@@ -1,12 +1,10 @@
-DATA_DIR = '/home/dsbrown/Code/atarigrandchallenge/atari_v1'
-
 import agc.dataset as ds
 import agc.util as util
 import numpy as np
 from os import path, listdir
 import cv2
 cv2.ocl.setUseOpenCL(False)
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 import argparse
 
 
@@ -75,7 +73,7 @@ def get_sorted_traj_indices(env_name, dataset):
         if env_name == "revenge":
             traj_indices.append(t)
             traj_scores.append(dataset.trajectories[g][t][-1]['score'])
-        
+
         elif dataset.trajectories[g][t][-1]['terminal']:
             traj_indices.append(t)
             traj_scores.append(dataset.trajectories[g][t][-1]['score'])
@@ -113,20 +111,20 @@ def get_sorted_traj_indices(env_name, dataset):
     print("(index, score) pairs:",demos)
     return demos
 
-def get_preprocessed_trajectories(env_name):
+def get_preprocessed_trajectories(env_name, dataset, data_dir):
     """returns an array of trajectories corresponding to what you would get running checkpoints from PPO
        demonstrations are grayscaled, maxpooled, stacks of 4 with normalized values between 0 and 1 and
        top section of screen is masked
     """
 
-    dataset = ds.AtariDataset(DATA_DIR)
+
     print("generating human demos for", env_name)
     demos = get_sorted_traj_indices(env_name, dataset)
     human_scores = []
     human_demos = []
     for indx, score in demos:
         human_scores.append(score)
-        traj_dir = path.join(DATA_DIR, 'screens', env_name, str(indx))
+        traj_dir = path.join(data_dir, 'screens', env_name, str(indx))
         #print("generating traj from", traj_dir)
         maxed_traj = MaxSkipAndWarpFrames(traj_dir)
         stacked_traj = StackFrames(maxed_traj)
@@ -136,8 +134,15 @@ def get_preprocessed_trajectories(env_name):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--env', default='', help="AGC environment name")
+    parser.add_argument('--env', default='', help="AGC environment name: spaceinvaders, qbert, mspacman, revenge, pinball")
+    parser.add_argument('--datadir', default=None, help='location of atari gc data')
     args = parser.parse_args()
     env_name = args.env
-    human_demos, human_scores = get_preprocessed_trajectories(env_name)
+    args.datadir
+    if args.datadir is None:
+        data_dir = '/home/dsbrown/Code/atarigrandchallenge/atari_v1'
+    else:
+        data_dir = args.datadir
+    dataset = ds.AtariDataset(data_dir)
+    human_demos, human_scores = get_preprocessed_trajectories(env_name, dataset, data_dir)
     print(human_scores)
