@@ -9,8 +9,8 @@ for rep in range(5):
     else:
         checkpoint = '15000'
         
-    f = open("./eval/" + env_name + "_" + checkpoint + "_" + rep + "eval.txt")
+    f = open(env_name + "_" + checkpoint + "_" + str(rep) + "eval.txt")
     for line in f:
-        returns.append(int(line.strip()))
+        returns.append(float(line.strip()))
 print(np.mean(returns))
     
