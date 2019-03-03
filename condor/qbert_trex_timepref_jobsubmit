@@ -11,5 +11,5 @@ getenv = true
 Executable = timepref_trex_qbert
 Error = /scratch/cluster/dsbrown/CondorOutput/qbert_learn_reward_timepref_err
 Output = /scratch/cluster/dsbrown/CondorOutput/qbert_learn_reward_timepref_out
-Log = /scratch/cluster/dsbrown/CondorOutput/qbert_   learn_reward_timepref_condor.log
+Log = /scratch/cluster/dsbrown/CondorOutput/qbert_learn_reward_timepref_condor.log
 Queue

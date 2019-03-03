@@ -15,7 +15,7 @@ def create_submit_file(env_name):
     submit_file += 'Executable = timepref_trex_' + env_name + '\n'
     submit_file += 'Error = /scratch/cluster/dsbrown/CondorOutput/' + env_name + '_learn_reward_timepref_err\n'
     submit_file += 'Output = /scratch/cluster/dsbrown/CondorOutput/' + env_name + '_learn_reward_timepref_out\n'
-    submit_file += 'Log = /scratch/cluster/dsbrown/CondorOutput/' + env_name + '_   learn_reward_timepref_condor.log\n'   
+    submit_file += 'Log = /scratch/cluster/dsbrown/CondorOutput/' + env_name + '_learn_reward_timepref_condor.log\n'   
     submit_file += 'Queue\n'
     print(submit_file)
     f = open(env_name + "_trex_timepref_jobsubmit",'w')
