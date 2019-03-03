@@ -1,0 +1,15 @@
++Group   = "GRAD"
++Project = "AI_ROBOTICS"
++ProjectDescription = "Learning from suboptimal demonstrations"
++GPUJob = true
+universe = vanilla
+Requirements=(TARGET.GTX1080==true)
+request_GPUs = 1
+notify_user = dsbrown
+Notification = Complete
+getenv = true
+Executable = timepref_trex_beamrider
+Error = /scratch/cluster/dsbrown/CondorOutput/beamrider_learn_reward_timepref_err
+Output = /scratch/cluster/dsbrown/CondorOutput/beamrider_learn_reward_timepref_out
+Log = /scratch/cluster/dsbrown/CondorOutput/beamrider_   learn_reward_timepref_condor.log
+Queue

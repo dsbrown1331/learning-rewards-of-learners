@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+source ~/.bashrc
+conda activate deeplearning
+cd ../learner/
+python LearnAtariNoviceSnippetsSortedTimePrefs.py --models_dir /scratch/cluster/dsbrown --env_name enduro --reward_model_path ./learned_models/enduro_timepref.params

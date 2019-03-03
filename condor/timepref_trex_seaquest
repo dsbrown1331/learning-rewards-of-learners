@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+source ~/.bashrc
+conda activate deeplearning
+cd ../learner/
+python LearnAtariNoviceSnippetsSortedTimePrefs.py --models_dir /scratch/cluster/dsbrown --env_name seaquest --reward_model_path ./learned_models/seaquest_timepref.params
