@@ -168,6 +168,6 @@ if __name__ == "__main__":
     dataset = ds.AtariDataset(data_dir)
     human_demos, human_scores = get_preprocessed_trajectories(env_name, dataset, data_dir)
     print(human_scores)
-    print(mean(human_scores))
+    #print(human_demos[0][0])
     print(max(human_scores))
-    print(human_demos[0][0])
+    print(np.mean(human_scores))
