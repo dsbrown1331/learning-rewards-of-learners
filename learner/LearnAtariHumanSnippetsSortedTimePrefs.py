@@ -51,8 +51,16 @@ def create_training_data(demonstrations, n_train, snippet_length):
             tj = np.random.randint(num_demos)
             #print(ti, tj)
             #create random snippets
-            ti_start = np.random.randint(len(demonstrations[ti])-snippet_length)
-            tj_start = np.random.randint(len(demonstrations[tj])-snippet_length)
+            #find min length of both demos to ensure we can pick a demo no earlier than that chosen in worse preferred demo
+            min_length = min(len(demonstrations[ti]), len(demonstrations[tj]))
+            if ti < tj: #pick tj snippet to be later than ti
+                ti_start = np.random.randint(min_length-snippet_length+1)
+                #print(ti_start, len(demonstrations[tj]))
+                tj_start = np.random.randint(ti_start, len(demonstrations[tj]) - snippet_length + 1)
+            else: #ti is better so pick later snippet in ti
+                tj_start = np.random.randint(min_length-snippet_length+1)
+                #print(tj_start, len(demonstrations[ti]))
+                ti_start = np.random.randint(tj_start, len(demonstrations[ti]) - snippet_length + 1)
             #print("start", ti_start, tj_start)
             traj_i = demonstrations[ti][ti_start:ti_start+snippet_length]
             traj_j = demonstrations[tj][tj_start:tj_start+snippet_length]
@@ -268,7 +276,7 @@ if __name__=="__main__":
     tf.set_random_seed(seed)
 
     print("Training reward for", env_id)
-    n_train = 3000 #number of pairs of trajectories to create
+    n_train = 10000 #number of pairs of trajectories to create
     snippet_length = 50 #length of trajectory for training comparison
     lr = 0.0001
     weight_decay = 0.0
