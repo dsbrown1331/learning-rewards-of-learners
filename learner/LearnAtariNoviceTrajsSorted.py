@@ -427,12 +427,12 @@ if __name__=="__main__":
     tf.set_random_seed(seed)
 
     print("Training reward for", env_id)
-    num_traj_augment = 2000 #number of pairs of trajectories to create
-    num_snippets = 2000
+    num_traj_augment = 3000 #number of pairs of trajectories to create
+    num_snippets = 3000
     snippet_length = 50 #length of trajectory for training comparison
     lr = 0.0001
     weight_decay = 0.0001
-    num_iter = 8 #num times through training data
+    num_iter = 6 #num times through training data
     l1_reg=0.0
     stochastic = True
 
