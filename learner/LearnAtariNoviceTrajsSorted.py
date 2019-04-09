@@ -209,24 +209,14 @@ def create_training_data(demonstrations, num_traj_augment, num_snippets, snippet
     return training_obs, training_labels
 
 
-
-
-
-
-
 class Net(nn.Module):
     def __init__(self):
         super().__init__()
-
-        self.conv1 = nn.Conv2d(4, 16, 7, stride=3)
-        self.conv2 = nn.Conv2d(16, 16, 5, stride=2)
-        self.conv3 = nn.Conv2d(16, 16, 3, stride=1)
-        self.conv4 = nn.Conv2d(16, 16, 3, stride=1)
-        self.fc1 = nn.Linear(784, 64)
-        #self.fc1 = nn.Linear(1936,64)
-        self.fc2 = nn.Linear(64, 1)
-
-
+        self.conv1 = nn.Conv2d(4, 32, kernel_size=8, stride=4)
+        self.conv2 = nn.Conv2d(32, 64, kernel_size=4, stride=2)
+        self.conv3 = nn.Conv2d(64, 64, kernel_size=3, stride=1)
+        self.fc1 = nn.Linear(64 * 7 * 7, 512)
+        self.output = nn.Linear(512, 1)
 
     def cum_return(self, traj):
         '''calculate cumulative return of trajectory'''
@@ -235,15 +225,11 @@ class Net(nn.Module):
         for x in traj:
             x = x.permute(0,3,1,2) #get into NCHW format
             #compute forward pass of reward network
-            x = F.leaky_relu(self.conv1(x))
-            x = F.leaky_relu(self.conv2(x))
-            x = F.leaky_relu(self.conv3(x))
-            x = F.leaky_relu(self.conv4(x))
-            x = x.view(-1, 784)
-            #x = x.view(-1, 1936)
-            x = F.leaky_relu(self.fc1(x))
-            #r = torch.tanh(self.fc2(x)) #clip reward?
-            r = self.fc2(x)
+            conv1_output = F.relu(self.conv1(x))
+            conv2_output = F.relu(self.conv2(conv1_output))
+            conv3_output = F.relu(self.conv3(conv2_output))
+            fc1_output = F.relu(self.fc1(conv3_output.view(conv3_output.size(0),-1)))
+            r = self.output(fc1_output)
             sum_rewards += r
             sum_abs_rewards += torch.abs(r)
         ##    y = self.scalar(torch.ones(1))
@@ -261,6 +247,56 @@ class Net(nn.Module):
         #print(abs_r_i + abs_r_j)
         return torch.cat([cum_r_i, cum_r_j]), abs_r_i + abs_r_j
 
+
+
+
+# class Net(nn.Module):
+#     def __init__(self):
+#         super().__init__()
+#
+#         self.conv1 = nn.Conv2d(4, 16, 7, stride=3)
+#         self.conv2 = nn.Conv2d(16, 16, 5, stride=2)
+#         self.conv3 = nn.Conv2d(16, 16, 3, stride=1)
+#         self.conv4 = nn.Conv2d(16, 16, 3, stride=1)
+#         self.fc1 = nn.Linear(784, 64)
+#         #self.fc1 = nn.Linear(1936,64)
+#         self.fc2 = nn.Linear(64, 1)
+#
+#
+#
+#     def cum_return(self, traj):
+#         '''calculate cumulative return of trajectory'''
+#         sum_rewards = 0
+#         sum_abs_rewards = 0
+#         for x in traj:
+#             x = x.permute(0,3,1,2) #get into NCHW format
+#             #compute forward pass of reward network
+#             x = F.leaky_relu(self.conv1(x))
+#             x = F.leaky_relu(self.conv2(x))
+#             x = F.leaky_relu(self.conv3(x))
+#             x = F.leaky_relu(self.conv4(x))
+#             x = x.view(-1, 784)
+#             #x = x.view(-1, 1936)
+#             x = F.leaky_relu(self.fc1(x))
+#             #r = torch.tanh(self.fc2(x)) #clip reward?
+#             r = self.fc2(x)
+#             sum_rewards += r
+#             sum_abs_rewards += torch.abs(r)
+#         ##    y = self.scalar(torch.ones(1))
+#         ##    sum_rewards += y
+#         #print(sum_rewards)
+#         return sum_rewards, sum_abs_rewards
+#
+#
+#
+#     def forward(self, traj_i, traj_j):
+#         '''compute cumulative return for each trajectory and return logits'''
+#         #print([self.cum_return(traj_i), self.cum_return(traj_j)])
+#         cum_r_i, abs_r_i = self.cum_return(traj_i)
+#         cum_r_j, abs_r_j = self.cum_return(traj_j)
+#         #print(abs_r_i + abs_r_j)
+#         return torch.cat([cum_r_i, cum_r_j]), abs_r_i + abs_r_j
+#
 
 
 
@@ -395,8 +431,8 @@ if __name__=="__main__":
     num_snippets = 2000
     snippet_length = 50 #length of trajectory for training comparison
     lr = 0.0001
-    weight_decay = 0.001
-    num_iter = 6 #num times through training data
+    weight_decay = 0.0001
+    num_iter = 8 #num times through training data
     l1_reg=0.0
     stochastic = True
 
