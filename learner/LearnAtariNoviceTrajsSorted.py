@@ -125,9 +125,8 @@ def generate_novice_demos(env, env_name, agent, model_dir):
 
 # In[9]:
 
-def create_training_data(demonstrations):
-    #n_train = 3000 #number of pairs of trajectories to create
-    #snippet_length = 50
+def create_training_data(demonstrations, num_traj_augment, num_snippets, snippet_length):
+    #add all pairwise full trajs
     training_obs = []
     training_labels = []
     num_demos = len(demonstrations)
@@ -139,6 +138,73 @@ def create_training_data(demonstrations):
             label = 1
             training_obs.append((traj_i, traj_j))
             training_labels.append(label)
+
+    #add augmented trajs
+    for n in range(num_traj_augment):
+        ti = 0
+        tj = 0
+        #only add trajectories that are different returns
+        while(ti == tj):
+            #pick two random demonstrations
+            ti = np.random.randint(num_demos)
+            tj = np.random.randint(num_demos)
+            #print(ti, tj)
+            #create random partial trajs by finding random start frame and random skip frame
+            si = np.random.randint(6)
+            sj = np.random.randint(6)
+            step = np.random.randint(2,6)
+            #print("si,sj,skip",si,sj,step)
+            traj_i = demonstrations[ti][si::step]  #slice(start,stop,step)
+            traj_j = demonstrations[tj][sj::step]
+        if ti > tj:
+            label = 0
+        else:
+            label = 1
+        #print(label)
+        #TODO: maybe add indifferent label?
+        training_obs.append((traj_i, traj_j))
+        training_labels.append(label)
+
+    #add snippets based on progress
+    for n in range(num_snippets):
+        ti = 0
+        tj = 0
+        #only add trajectories that are different returns
+        while(ti == tj):
+            #pick two random demonstrations
+            ti = np.random.randint(num_demos)
+            tj = np.random.randint(num_demos)
+            #print(ti, tj)
+            #create random snippets
+            #find min length of both demos to ensure we can pick a demo no earlier than that chosen in worse preferred demo
+            min_length = min(len(demonstrations[ti]), len(demonstrations[tj]))
+            if ti < tj: #pick tj snippet to be later than ti
+                ti_start = np.random.randint(min_length-snippet_length+1)
+                #print(ti_start, len(demonstrations[tj]))
+                tj_start = np.random.randint(ti_start, len(demonstrations[tj]) - snippet_length + 1)
+            else: #ti is better so pick later snippet in ti
+                tj_start = np.random.randint(min_length-snippet_length+1)
+                #print(tj_start, len(demonstrations[ti]))
+                ti_start = np.random.randint(tj_start, len(demonstrations[ti]) - snippet_length + 1)
+            #print("start", ti_start, tj_start)
+            traj_i = demonstrations[ti]
+            traj_j = demonstrations[tj]
+            #print('traj', traj_i, traj_j)
+            #return_i = sum(learning_rewards[ti][ti_start:ti_start+snippet_length])
+            #return_j = sum(learning_rewards[tj][tj_start:tj_start+snippet_length])
+            #print("returns", return_i, return_j)
+
+        #if return_i > return_j:
+        #    label = 0
+        #else:
+        #    label = 1
+        if ti > tj:
+            label = 0
+        else:
+            label = 1
+        training_obs.append((traj_i, traj_j))
+        training_labels.append(label)
+
 
     return training_obs, training_labels
 
@@ -325,11 +391,12 @@ if __name__=="__main__":
     tf.set_random_seed(seed)
 
     print("Training reward for", env_id)
-    #n_train = 200 #number of pairs of trajectories to create
-    #snippet_length = 50 #length of trajectory for training comparison
+    num_traj_augment = 2000 #number of pairs of trajectories to create
+    num_snippets = 2000
+    snippet_length = 50 #length of trajectory for training comparison
     lr = 0.0001
     weight_decay = 0.001
-    num_iter = 20 #num times through training data
+    num_iter = 6 #num times through training data
     l1_reg=0.0
     stochastic = True
 
@@ -365,7 +432,7 @@ if __name__=="__main__":
     #plt.plot(sorted_returns)
     #plt.show()
 
-    training_obs, training_labels = create_training_data(demonstrations)
+    training_obs, training_labels = create_training_data(demonstrations, num_traj_augment, num_snippets, snippet_length)
     print("num training_obs", len(training_obs))
     print("num_labels", len(training_labels))
     # Now we create a reward network and optimize it using the training data.
