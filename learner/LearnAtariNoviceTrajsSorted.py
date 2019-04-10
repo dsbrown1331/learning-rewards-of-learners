@@ -44,7 +44,7 @@ def generate_novice_demos(env, env_name, agent, model_dir):
     crop_top = True
     if env_name == "enduro":
         checkpoint_min = 3100
-        checkpoint_max = 3650
+        checkpoint_max = 3150
         crop_top = False
     elif env_name == "seaquest":
         checkpoint_min = 10
@@ -154,11 +154,14 @@ def create_training_data(demonstrations, num_traj_augment, num_snippets, num_sup
         #create random partial trajs by finding random start frame and random skip frame
         si = np.random.randint(6)
         sj = np.random.randint(6)
-        step_i = np.random.randint(2,6)
-        step_j = np.random.randint(2,6)
+        if max(len(demonstrations[ti]), len(demonstrations[tj])) > 2000:
+            step = np.random.randint(4,9)
+        else:
+            step = np.random.randint(3,8)
+        #step_j = np.random.randint(2,6)
         #print("si,sj,skip",si,sj,step)
-        traj_i = demonstrations[ti][si::step_i]  #slice(start,stop,step)
-        traj_j = demonstrations[tj][sj::step_j]
+        traj_i = demonstrations[ti][si::step]  #slice(start,stop,step)
+        traj_j = demonstrations[tj][sj::step]
         max_traj_length = max(max_traj_length, len(traj_i), len(traj_j))
         if ti > tj:
             label = 0
@@ -499,7 +502,7 @@ if __name__=="__main__":
     num_super_snippets = 0
     min_snippet_length = 50 #length of trajectory for training comparison
 
-    lr = 0.0001
+    lr = 0.00005
     weight_decay = 0.0001
     num_iter = 5 #num times through training data
     l1_reg=0.0
@@ -529,7 +532,7 @@ if __name__=="__main__":
     #set max snippet length to min(2 * average length of demonstration, max length of demonstration)
     demo_lengths = [len(d) for d in demonstrations]
     print("demo lengths", demo_lengths)
-    max_snippet_length = min(np.min(demo_lengths), 150)
+    max_snippet_length = min(np.min(demo_lengths), 100)
     print("max snippet length", max_snippet_length)
 
     print(len(learning_returns))
