@@ -44,7 +44,7 @@ def generate_novice_demos(env, env_name, agent, model_dir):
     crop_top = True
     if env_name == "enduro":
         checkpoint_min = 3100
-        checkpoint_max = 3150
+        checkpoint_max = 3650
         crop_top = False
     elif env_name == "seaquest":
         checkpoint_min = 10
