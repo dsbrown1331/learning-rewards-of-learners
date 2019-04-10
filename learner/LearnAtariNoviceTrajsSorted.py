@@ -154,10 +154,12 @@ def create_training_data(demonstrations, num_traj_augment, num_snippets, num_sup
         #create random partial trajs by finding random start frame and random skip frame
         si = np.random.randint(6)
         sj = np.random.randint(6)
-        if max(len(demonstrations[ti]), len(demonstrations[tj])) > 2000:
-            step = np.random.randint(4,9)
+        if max(len(demonstrations[ti]), len(demonstrations[tj])) > 3000:
+            step = np.random.randint(7,11)
+        if max(len(demonstrations[ti]), len(demonstrations[tj])) > 1500:
+            step = np.random.randint(5,9)
         else:
-            step = np.random.randint(3,8)
+            step = np.random.randint(3,7)
         #step_j = np.random.randint(2,6)
         #print("si,sj,skip",si,sj,step)
         traj_i = demonstrations[ti][si::step]  #slice(start,stop,step)
