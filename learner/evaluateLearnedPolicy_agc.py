@@ -10,7 +10,7 @@ from run_test import *
 #import matplotlib.pylab as plt
 import argparse
 
-def evaluate_learned_policy(env_name, tflogdir, checkpoint, rep):
+def evaluate_learned_policy(env_name, checkpoint, rep):
     if env_name == "spaceinvaders":
         env_id = "SpaceInvadersNoFrameskip-v4"
     elif env_name == "mspacman":
@@ -42,7 +42,7 @@ def evaluate_learned_policy(env_name, tflogdir, checkpoint, rep):
     #agent = RandomAgent(env.action_space)
 
     learning_returns = []
-    model_path = "/scratch/cluster/dsbrown/tflogs/" + env_name + tflogdir + str(rep) + "/checkpoints/" + checkpoint
+    model_path = "/scratch/cluster/dsbrown/tflogs/human_" + env_name + "_titan_" +  str(rep) + "/checkpoints/" + checkpoint
     #model_path = "/home/dsbrown/Code/learning-rewards-of-learners/learner/models/spaceinvaders/checkpoints/" + checkpoint
     print(model_path)
 
@@ -87,12 +87,10 @@ if __name__=="__main__":
     parser = argparse.ArgumentParser(description=None)
     parser.add_argument('--seed', default=1234, help="random seed for experiments")
     parser.add_argument('--env_name', default='', help='Select the environment name to run, i.e. pong')
-    parser.add_argument('--tflogdir', default='20env_', help='postfix to append to env_name to get tflogs')
     parser.add_argument('--checkpoint', default='', help='checkpoint to run eval on')
     parser.add_argument('--rep', default='', help='which trial to evaluate')
     args = parser.parse_args()
     env_name = args.env_name
-    tflogdir = args.tflogdir
     #set seeds
     seed = int(args.seed)
     torch.manual_seed(seed)
@@ -104,9 +102,9 @@ if __name__=="__main__":
     print("*"*10)
     print(env_name)
     print("*"*10)
-    returns = evaluate_learned_policy(env_name, tflogdir, checkpoint, rep)
+    returns = evaluate_learned_policy(env_name, checkpoint, rep)
     #write returns to file
-    f = open("./eval/" + env_name + tflogdir + checkpoint + "_" + rep + "eval.txt",'w')
+    f = open("./eval/" + env_name + "_agchuman_titan" + checkpoint + "_" + rep + "eval.txt",'w')
     for r in returns:
         f.write("{}\n".format(r))
     f.close()
