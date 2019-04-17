@@ -15,37 +15,17 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from run_test import *
+from trex_utils import preprocess
 
-def normalize_state(obs):
-    obs_highs = env.observation_space.high
-    obs_lows = env.observation_space.low
-    #print(obs_highs)
-    #print(obs_lows)
-    #return  2.0 * (obs - obs_lows) / (obs_highs - obs_lows) - 1.0
-    return obs / 255.0
-
-
-def mask_score(obs, crop_top = True):
-    if crop_top:
-        #takes a stack of four observations and blacks out (sets to zero) top n rows
-        n = 10
-        #no_score_obs = copy.deepcopy(obs)
-        obs[:,:n,:,:] = 0
-    else:
-        n = 20
-        obs[:,-n:,:,:] = 0
-    return obs
 
 def generate_novice_demos(env, env_name, agent, model_dir):
     checkpoint_min = 50
     checkpoint_max = 600
     checkpoint_step = 50
     checkpoints = []
-    crop_top = True
     if env_name == "enduro":
         checkpoint_min = 3100
         checkpoint_max = 3650
-        crop_top = False
     elif env_name == "seaquest":
         checkpoint_min = 10
         checkpoint_max = 65
@@ -90,8 +70,9 @@ def generate_novice_demos(env, env_name, agent, model_dir):
             while True:
                 action = agent.act(ob, r, done)
                 ob, r, done, _ = env.step(action)
+                ob  = ob[0] #get rid of spurious first dimension ob.shape = (1,84,84,4)
                 #print(ob.shape)
-                traj.append(mask_score(normalize_state(ob), crop_top))
+                traj.append(preprocess(ob, env_name))
 
                 gt_rewards.append(r[0])
                 steps += 1
@@ -226,7 +207,7 @@ def create_training_data(demonstrations, num_traj_augment, num_snippets, num_sup
     #     training_obs.append((traj_i, traj_j))
     #     training_labels.append(label)
 
-    #fixed size snippets
+    #fixed size snippets with progress prior
     for n in range(num_snippets):
         ti = 0
         tj = 0
@@ -271,62 +252,14 @@ def create_training_data(demonstrations, num_traj_augment, num_snippets, num_sup
     return training_obs, training_labels
 
 
-class Net(nn.Module):
-    def __init__(self):
-        super().__init__()
-        self.conv1 = nn.Conv2d(4, 32, kernel_size=8, stride=4)
-        self.conv2 = nn.Conv2d(32, 64, kernel_size=4, stride=2)
-        self.conv3 = nn.Conv2d(64, 64, kernel_size=3, stride=1)
-        self.fc1 = nn.Linear(64 * 7 * 7, 512)
-        self.output = nn.Linear(512, 1)
-
-    def cum_return(self, traj):
-        '''calculate cumulative return of trajectory'''
-        sum_rewards = 0
-        sum_abs_rewards = 0
-        for x in traj:
-            x = x.permute(0,3,1,2) #get into NCHW format
-            #compute forward pass of reward network
-            conv1_output = F.relu(self.conv1(x))
-            conv2_output = F.relu(self.conv2(conv1_output))
-            conv3_output = F.relu(self.conv3(conv2_output))
-            fc1_output = F.relu(self.fc1(conv3_output.view(conv3_output.size(0),-1)))
-            r = self.output(fc1_output)
-            sum_rewards += r
-            sum_abs_rewards += torch.abs(r)
-        ##    y = self.scalar(torch.ones(1))
-        ##    sum_rewards += y
-        #print(sum_rewards)
-        return sum_rewards, sum_abs_rewards
-
-
-
-    def forward(self, traj_i, traj_j):
-        #print(traj_i)
-        #print(traj_j)
-        '''compute cumulative return for each trajectory and return logits'''
-        #print([self.cum_return(traj_i), self.cum_return(traj_j)])
-        cum_r_i, abs_r_i = self.cum_return(traj_i)
-        cum_r_j, abs_r_j = self.cum_return(traj_j)
-        #print(abs_r_i + abs_r_j)
-        return torch.cat([cum_r_i, cum_r_j]), abs_r_i + abs_r_j
-
-
-
-
 # class Net(nn.Module):
 #     def __init__(self):
 #         super().__init__()
-#
-#         self.conv1 = nn.Conv2d(4, 16, 7, stride=3)
-#         self.conv2 = nn.Conv2d(16, 16, 5, stride=2)
-#         self.conv3 = nn.Conv2d(16, 16, 3, stride=1)
-#         self.conv4 = nn.Conv2d(16, 16, 3, stride=1)
-#         self.fc1 = nn.Linear(784, 64)
-#         #self.fc1 = nn.Linear(1936,64)
-#         self.fc2 = nn.Linear(64, 1)
-#
-#
+#         self.conv1 = nn.Conv2d(4, 32, kernel_size=8, stride=4)
+#         self.conv2 = nn.Conv2d(32, 64, kernel_size=4, stride=2)
+#         self.conv3 = nn.Conv2d(64, 64, kernel_size=3, stride=1)
+#         self.fc1 = nn.Linear(64 * 7 * 7, 512)
+#         self.output = nn.Linear(512, 1)
 #
 #     def cum_return(self, traj):
 #         '''calculate cumulative return of trajectory'''
@@ -335,15 +268,11 @@ class Net(nn.Module):
 #         for x in traj:
 #             x = x.permute(0,3,1,2) #get into NCHW format
 #             #compute forward pass of reward network
-#             x = F.leaky_relu(self.conv1(x))
-#             x = F.leaky_relu(self.conv2(x))
-#             x = F.leaky_relu(self.conv3(x))
-#             x = F.leaky_relu(self.conv4(x))
-#             x = x.view(-1, 784)
-#             #x = x.view(-1, 1936)
-#             x = F.leaky_relu(self.fc1(x))
-#             #r = torch.tanh(self.fc2(x)) #clip reward?
-#             r = self.fc2(x)
+#             conv1_output = F.relu(self.conv1(x))
+#             conv2_output = F.relu(self.conv2(conv1_output))
+#             conv3_output = F.relu(self.conv3(conv2_output))
+#             fc1_output = F.relu(self.fc1(conv3_output.view(conv3_output.size(0),-1)))
+#             r = self.output(fc1_output)
 #             sum_rewards += r
 #             sum_abs_rewards += torch.abs(r)
 #         ##    y = self.scalar(torch.ones(1))
@@ -354,12 +283,64 @@ class Net(nn.Module):
 #
 #
 #     def forward(self, traj_i, traj_j):
+#         #print(traj_i)
+#         #print(traj_j)
 #         '''compute cumulative return for each trajectory and return logits'''
 #         #print([self.cum_return(traj_i), self.cum_return(traj_j)])
 #         cum_r_i, abs_r_i = self.cum_return(traj_i)
 #         cum_r_j, abs_r_j = self.cum_return(traj_j)
 #         #print(abs_r_i + abs_r_j)
 #         return torch.cat([cum_r_i, cum_r_j]), abs_r_i + abs_r_j
+#
+
+
+
+class Net(nn.Module):
+    def __init__(self):
+        super().__init__()
+
+        self.conv1 = nn.Conv2d(4, 16, 7, stride=3)
+        self.conv2 = nn.Conv2d(16, 16, 5, stride=2)
+        self.conv3 = nn.Conv2d(16, 16, 3, stride=1)
+        self.conv4 = nn.Conv2d(16, 16, 3, stride=1)
+        self.fc1 = nn.Linear(784, 64)
+        #self.fc1 = nn.Linear(1936,64)
+        self.fc2 = nn.Linear(64, 1)
+
+
+
+    def cum_return(self, traj):
+        '''calculate cumulative return of trajectory'''
+        sum_rewards = 0
+        sum_abs_rewards = 0
+        #for x in traj:
+        x = traj.permute(0,3,1,2) #get into NCHW format
+        #compute forward pass of reward network
+        x = F.leaky_relu(self.conv1(x))
+        x = F.leaky_relu(self.conv2(x))
+        x = F.leaky_relu(self.conv3(x))
+        x = F.leaky_relu(self.conv4(x))
+        x = x.view(-1, 784)
+        #x = x.view(-1, 1936)
+        x = F.leaky_relu(self.fc1(x))
+        #r = torch.tanh(self.fc2(x)) #clip reward?
+        r = self.fc2(x)
+        sum_rewards += torch.sum(r)
+        sum_abs_rewards += torch.sum(torch.abs(r))
+        ##    y = self.scalar(torch.ones(1))
+        ##    sum_rewards += y
+        #print("sum rewards", sum_rewards)
+        return sum_rewards, sum_abs_rewards
+
+
+
+    def forward(self, traj_i, traj_j):
+        '''compute cumulative return for each trajectory and return logits'''
+        #print([self.cum_return(traj_i), self.cum_return(traj_j)])
+        cum_r_i, abs_r_i = self.cum_return(traj_i)
+        cum_r_j, abs_r_j = self.cum_return(traj_j)
+        #print(abs_r_i + abs_r_j)
+        return torch.cat((cum_r_i.unsqueeze(0), cum_r_j.unsqueeze(0)),0), abs_r_i + abs_r_j
 
 
 
@@ -383,7 +364,7 @@ def learn_reward(reward_network, optimizer, training_inputs, training_outputs, n
         training_obs, training_labels = zip(*training_data)
         for i in range(len(training_labels)):
             traj_i, traj_j = training_obs[i]
-            labels = np.array([[training_labels[i]]])
+            labels = np.array([training_labels[i]])
             traj_i = np.array(traj_i)
             traj_j = np.array(traj_j)
             traj_i = torch.from_numpy(traj_i).float().to(device)
@@ -397,23 +378,23 @@ def learn_reward(reward_network, optimizer, training_inputs, training_outputs, n
             outputs, abs_rewards = reward_network.forward(traj_i, traj_j)
             #print(outputs[0], outputs[1])
             #print(labels.item())
-            #outputs = outputs.unsqueeze(0)
-            #print(outputs)
-            #print(labels)
-            #loss = loss_criterion(outputs, labels) + l1_reg * abs_rewards
-            if labels == 0:
-                #print("label 0")
-                loss = torch.log(1 + torch.exp(outputs[1] - outputs[0]))
-            else:
-                #print("label 1")
-                loss = torch.log(1 + torch.exp(outputs[0] - outputs[1]))
+            outputs = outputs.unsqueeze(0)
+            #print("outputs", outputs)
+            #print("labels", labels)
+            loss = loss_criterion(outputs, labels) + l1_reg * abs_rewards
+            # if labels == 0:
+            #     #print("label 0")
+            #     loss = torch.log(1 + torch.exp(outputs[1] - outputs[0]))
+            # else:
+            #     #print("label 1")
+            #     loss = torch.log(1 + torch.exp(outputs[0] - outputs[1]))
             loss.backward()
             optimizer.step()
 
             #print stats to see if learning
             item_loss = loss.item()
             cum_loss += item_loss
-            if i % 50 == 49:
+            if i % 500 == 499:
                 #print(i)
                 print("epoch {}:{} loss {}".format(epoch,i, cum_loss))
                 print(abs_rewards)
@@ -499,8 +480,8 @@ if __name__=="__main__":
     tf.set_random_seed(seed)
 
     print("Training reward for", env_id)
-    num_traj_augment = 500 #number of pairs of trajectories to create
-    num_snippets = 6000
+    num_traj_augment = 300 #500 #number of pairs of trajectories to create
+    num_snippets = 6000#200#6000
     num_super_snippets = 0
     min_snippet_length = 50 #length of trajectory for training comparison
 
