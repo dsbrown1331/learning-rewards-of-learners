@@ -17,6 +17,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from run_test import *
 import agc_demos
+from baselines.common.trex_utils import preprocess
 
 
 
