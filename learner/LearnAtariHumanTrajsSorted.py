@@ -35,54 +35,77 @@ import agc_demos
 
 # In[9]:
 
-def create_training_data(demonstrations, n_train):
+
+
+def create_training_data(demonstrations):
     #n_train = 3000 #number of pairs of trajectories to create
     #snippet_length = 50
     training_obs = []
     training_labels = []
     num_demos = len(demonstrations)
-    for n in range(n_train):
-        ti = 0
-        tj = 0
-        #only add trajectories that are different returns
-        while(ti == tj):
-            #pick two random demonstrations
-            ti = np.random.randint(num_demos)
-            tj = np.random.randint(num_demos)
-            #print(ti, tj)
-            #create random snippets
-            #find min length of both demos to ensure we can pick a demo no earlier than that chosen in worse preferred demo
-            #min_length = min(len(demonstrations[ti]), len(demonstrations[tj]))
-            #if ti < tj: #pick tj snippet to be later than ti
-            #    ti_start = np.random.randint(min_length-snippet_length+1)
-            #    #print(ti_start, len(demonstrations[tj]))
-            #    tj_start = np.random.randint(ti_start, len(demonstrations[tj]) - snippet_length + 1)
-            #else: #ti is better so pick later snippet in ti
-            #    tj_start = np.random.randint(min_length-snippet_length+1)
-            #    #print(tj_start, len(demonstrations[ti]))
-            #    ti_start = np.random.randint(tj_start, len(demonstrations[ti]) - snippet_length + 1)
-            #print("start", ti_start, tj_start)
-            traj_i = demonstrations[ti]
-            traj_j = demonstrations[tj]
-            #print('traj', traj_i, traj_j)
-            #return_i = sum(learning_rewards[ti][ti_start:ti_start+snippet_length])
-            #return_j = sum(learning_rewards[tj][tj_start:tj_start+snippet_length])
-            #print("returns", return_i, return_j)
-
-        #if return_i > return_j:
-        #    label = 0
-        #else:
-        #    label = 1
-        if ti > tj:
-            label = 0
-        else:
+    for i in range(num_demos):
+        for j in range(i+1,num_demos):
+            print(i,j)
+            traj_i = demonstrations[i]
+            traj_j = demonstrations[j]
             label = 1
-        #print(label)
-        #TODO: maybe add indifferent label?
-        training_obs.append((traj_i, traj_j))
-        training_labels.append(label)
+            training_obs.append((traj_i, traj_j))
+            training_labels.append(label)
 
     return training_obs, training_labels
+
+
+
+
+
+# def create_training_data(demonstrations, n_train):
+#     #n_train = 3000 #number of pairs of trajectories to create
+#     #snippet_length = 50
+#     training_obs = []
+#     training_labels = []
+#     num_demos = len(demonstrations)
+#     for n in range(n_train):
+#         ti = 0
+#         tj = 0
+#         #only add trajectories that are different returns
+#         while(ti == tj):
+#             #pick two random demonstrations
+#             ti = np.random.randint(num_demos)
+#             tj = np.random.randint(num_demos)
+#             #print(ti, tj)
+#             #create random snippets
+#             #find min length of both demos to ensure we can pick a demo no earlier than that chosen in worse preferred demo
+#             #min_length = min(len(demonstrations[ti]), len(demonstrations[tj]))
+#             #if ti < tj: #pick tj snippet to be later than ti
+#             #    ti_start = np.random.randint(min_length-snippet_length+1)
+#             #    #print(ti_start, len(demonstrations[tj]))
+#             #    tj_start = np.random.randint(ti_start, len(demonstrations[tj]) - snippet_length + 1)
+#             #else: #ti is better so pick later snippet in ti
+#             #    tj_start = np.random.randint(min_length-snippet_length+1)
+#             #    #print(tj_start, len(demonstrations[ti]))
+#             #    ti_start = np.random.randint(tj_start, len(demonstrations[ti]) - snippet_length + 1)
+#             #print("start", ti_start, tj_start)
+#             traj_i = demonstrations[ti]
+#             traj_j = demonstrations[tj]
+#             #print('traj', traj_i, traj_j)
+#             #return_i = sum(learning_rewards[ti][ti_start:ti_start+snippet_length])
+#             #return_j = sum(learning_rewards[tj][tj_start:tj_start+snippet_length])
+#             #print("returns", return_i, return_j)
+#
+#         #if return_i > return_j:
+#         #    label = 0
+#         #else:
+#         #    label = 1
+#         if ti > tj:
+#             label = 0
+#         else:
+#             label = 1
+#         #print(label)
+#         #TODO: maybe add indifferent label?
+#         training_obs.append((traj_i, traj_j))
+#         training_labels.append(label)
+#
+#     return training_obs, training_labels
 
 
 
@@ -280,7 +303,7 @@ if __name__=="__main__":
     snippet_length = 50 #length of trajectory for training comparison
     lr = 0.0001
     weight_decay = 0.001
-    num_iter = 5 #num times through training data
+    num_iter = 20 #num times through training data
     l1_reg=0.0
     stochastic = True
 
@@ -319,7 +342,7 @@ if __name__=="__main__":
     #plt.plot(sorted_returns)
     #plt.show()
 
-    training_obs, training_labels = create_training_data(demonstrations, n_train)
+    training_obs, training_labels = create_training_data(demonstrations)
     print("num training_obs", len(training_obs))
     print("num_labels", len(training_labels))
     # Now we create a reward network and optimize it using the training data.
