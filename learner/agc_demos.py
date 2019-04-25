@@ -6,21 +6,7 @@ import cv2
 cv2.ocl.setUseOpenCL(False)
 #import matplotlib.pyplot as plt
 import argparse
-
-def normalize_state(obs):
-    return obs / 255.0
-
-
-def mask_score(obs, crop_top = True):
-    if crop_top:
-        #takes a stack of four observations and blacks out (sets to zero) top n rows
-        n = 10
-        #no_score_obs = copy.deepcopy(obs)
-        obs[:,:n,:,:] = 0
-    else:
-        n = 20
-        obs[:,-n:,:,:] = 0
-    return obs
+from baselines.common.trex_utils import preprocess
 
 #need to grayscale and warp to 84x84
 def GrayScaleWarpImage(image):
@@ -107,6 +93,7 @@ def get_sorted_traj_indices(env_name, dataset):
             seen_scores.add(s)
             non_duplicates.append((i,s))
     print("num non duplicate scores", len(seen_scores))
+    num_demos = 12
     if env_name == "spaceinvaders":
         start = 0
         skip = 3
@@ -119,7 +106,7 @@ def get_sorted_traj_indices(env_name, dataset):
     elif env_name == "mspacman":
         start = 0
         skip = 1
-    num_demos = 12
+        num_demos = 24
     demos = non_duplicates[start:num_demos*skip + start:skip]
     print("(index, score) pairs:",demos)
     return demos
@@ -149,7 +136,7 @@ def get_preprocessed_trajectories(env_name, dataset, data_dir):
         demo_norm_mask = []
         #normalize values to be between 0 and 1 and have top part masked
         for ob in stacked_traj:
-            demo_norm_mask.append(mask_score(normalize_state(ob), crop_top))
+            demo_norm_mask.append(preprocess(ob, env_name))
         human_demos.append(demo_norm_mask)
     return human_demos, human_scores
 
