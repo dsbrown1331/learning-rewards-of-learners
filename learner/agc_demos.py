@@ -109,7 +109,7 @@ def get_sorted_traj_indices(env_name, dataset):
     print("num non duplicate scores", len(seen_scores))
     if env_name == "spaceinvaders":
         start = 0
-        skip = 3
+        skip = 5
     elif env_name == "revenge":
         start = 0
         skip = 1
@@ -117,6 +117,12 @@ def get_sorted_traj_indices(env_name, dataset):
         start = 0
         skip = 3
     elif env_name == "mspacman":
+        start = 0
+        skip = 2
+    elif env_name == "pinball":
+        start = 0
+        skip = 1
+    elif env_name == "revenge":
         start = 0
         skip = 1
     num_demos = 12
