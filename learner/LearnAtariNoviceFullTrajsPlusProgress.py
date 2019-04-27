@@ -127,7 +127,7 @@ def create_training_data(demonstrations, num_trajsample, num_subsample, snippet_
         #create random partial trajs by finding random start frame and random skip frame
         si = np.random.randint(6)
         sj = np.random.randint(6)
-        step = np.random.randint(2,5)
+        step = np.random.randint(3,7)
         #step_j = np.random.randint(2,6)
         #print("si,sj,skip",si,sj,step)
         traj_i = demonstrations[ti][si::step]  #slice(start,stop,step)
