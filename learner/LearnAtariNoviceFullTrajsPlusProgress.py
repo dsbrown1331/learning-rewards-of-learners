@@ -283,7 +283,7 @@ def learn_reward(reward_network, optimizer, training_inputs, training_outputs, n
             #print stats to see if learning
             item_loss = loss.item()
             cum_loss += item_loss
-            if i % 50 == 49:
+            if i % 1000 == 999:
                 #print(i)
                 print("epoch {}:{} loss {}".format(epoch,i, cum_loss))
                 print(abs_rewards)
