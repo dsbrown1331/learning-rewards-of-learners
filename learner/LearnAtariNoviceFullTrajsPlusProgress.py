@@ -110,19 +110,36 @@ def generate_novice_demos(env, env_name, agent, model_dir):
 
 # In[9]:
 
-def create_training_data(demonstrations, num_subsample, snippet_length):
+def create_training_data(demonstrations, num_trajsample, num_subsample, snippet_length):
     #use all full length trajs
     training_obs = []
     training_labels = []
     num_demos = len(demonstrations)
-    for i in range(num_demos):
-        for j in range(i+1,num_demos):
-            print(i,j)
-            traj_i = demonstrations[i]
-            traj_j = demonstrations[j]
+    for n in range(num_trajsample):
+        ti = 0
+        tj = 0
+        #only add trajectories that are different returns
+        while(ti == tj):
+            #pick two random demonstrations
+            ti = np.random.randint(num_demos)
+            tj = np.random.randint(num_demos)
+        #print(ti, tj)
+        #create random partial trajs by finding random start frame and random skip frame
+        si = np.random.randint(6)
+        sj = np.random.randint(6)
+        step = np.random.randint(2,5)
+        #step_j = np.random.randint(2,6)
+        #print("si,sj,skip",si,sj,step)
+        traj_i = demonstrations[ti][si::step]  #slice(start,stop,step)
+        traj_j = demonstrations[tj][sj::step]
+        #max_traj_length = max(max_traj_length, len(traj_i), len(traj_j))
+        if ti > tj:
+            label = 0
+        else:
             label = 1
-            training_obs.append((traj_i, traj_j))
-            training_labels.append(label)
+        #print(label)
+        training_obs.append((traj_i, traj_j))
+        training_labels.append(label)
 
     for n in range(num_subsample):
         ti = 0
@@ -352,11 +369,12 @@ if __name__=="__main__":
     tf.set_random_seed(seed)
 
     print("Training reward for", env_id)
-    num_subsample = 5000 #number of pairs of trajectories to create
+    num_subsample = 6000 #number of pairs of trajectories to create
+    num_trajsample = 1000
     snippet_length = 50 #length of trajectory for training comparison
     lr = 0.0001
-    weight_decay = 0.001
-    num_iter = 6 #num times through training data
+    weight_decay = 0.0001
+    num_iter = 5 #num times through training data
     l1_reg=0.0
     stochastic = True
 
@@ -392,7 +410,7 @@ if __name__=="__main__":
     #plt.plot(sorted_returns)
     #plt.show()
 
-    training_obs, training_labels = create_training_data(demonstrations, num_subsample, snippet_length)
+    training_obs, training_labels = create_training_data(demonstrations, num_trajsample, num_subsample, snippet_length)
     print("num training_obs", len(training_obs))
     print("num_labels", len(training_labels))
     # Now we create a reward network and optimize it using the training data.
