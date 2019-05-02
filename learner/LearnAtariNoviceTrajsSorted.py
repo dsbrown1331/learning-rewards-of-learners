@@ -142,16 +142,18 @@ def create_training_data(demonstrations, num_traj_augment, num_snippets, num_sup
         #create random partial trajs by finding random start frame and random skip frame
         si = np.random.randint(6)
         sj = np.random.randint(6)
-        if max(len(demonstrations[ti]), len(demonstrations[tj])) > 3000:
-            step = np.random.randint(7,11)
-        if max(len(demonstrations[ti]), len(demonstrations[tj])) > 1500:
-            step = np.random.randint(5,9)
-        else:
-            step = np.random.randint(3,7)
+        #make sure that resulting length is less than 200
+        max_demo_length = max(len(demonstrations[ti]), len(demonstrations[tj]))
+        #figure out how min number of framestacks to skip to keep less than 200
+        min_step = np.ceil(max_demo_length / 200.0)
+        step = np.random.randint(min_step, min_step + 5)
+        print("len i", len(demonstrations[ti]), "len j", len(demonstrations[tj]))
+        print("step", step, "max_demo", max_demo_length, "min step", min_step)
         #step_j = np.random.randint(2,6)
         #print("si,sj,skip",si,sj,step)
         traj_i = demonstrations[ti][si::step]  #slice(start,stop,step)
         traj_j = demonstrations[tj][sj::step]
+        print("len i new", len(traj_i), "len j new", len(traj_j))
         max_traj_length = max(max_traj_length, len(traj_i), len(traj_j))
         if ti > tj:
             label = 0
@@ -161,7 +163,6 @@ def create_training_data(demonstrations, num_traj_augment, num_snippets, num_sup
         #TODO: maybe add indifferent label?
         training_obs.append((traj_i, traj_j))
         training_labels.append(label)
-    print("max example length", max_traj_length)
 
     # #add snippets based on progress but supersample and subsample
     # #combine all demos into one big demo
@@ -237,8 +238,8 @@ def create_training_data(demonstrations, num_traj_augment, num_snippets, num_sup
             #print(tj_start, len(demonstrations[ti]))
             ti_start = np.random.randint(tj_start, len(demonstrations[ti]) - rand_length + 1)
         #print("start", ti_start, tj_start)
-        traj_i = demonstrations[ti]
-        traj_j = demonstrations[tj]
+        traj_i = demonstrations[ti][ti_start:ti_start+rand_length:2] #skip everyother framestack to reduce size
+        traj_j = demonstrations[tj][tj_start:tj_start+rand_length:2]
             #print('traj', traj_i, traj_j)
             #return_i = sum(learning_rewards[ti][ti_start:ti_start+snippet_length])
             #return_j = sum(learning_rewards[tj][tj_start:tj_start+snippet_length])
@@ -248,6 +249,7 @@ def create_training_data(demonstrations, num_traj_augment, num_snippets, num_sup
         #    label = 0
         #else:
         #    label = 1
+        max_traj_length = max(max_traj_length, len(traj_i), len(traj_j))
         if ti > tj:
             label = 0
         else:
@@ -401,7 +403,7 @@ def learn_reward(reward_network, optimizer, training_inputs, training_outputs, n
             #print stats to see if learning
             item_loss = loss.item()
             cum_loss += item_loss
-            if i % 500 == 499:
+            if i % 1000 == 999:
                 #print(i)
                 print("epoch {}:{} loss {}".format(epoch,i, cum_loss))
                 print(abs_rewards)
@@ -487,10 +489,11 @@ if __name__=="__main__":
     tf.set_random_seed(seed)
 
     print("Training reward for", env_id)
-    num_traj_augment = 500 #500 #number of pairs of trajectories to create
-    num_snippets = 4500#200#6000
+    num_traj_augment = 4000 #500 #number of pairs of trajectories to create
+    num_snippets = 4000#200#6000
     num_super_snippets = 0
     min_snippet_length = 50 #length of trajectory for training comparison
+    maximum_snippet_length = 100
 
     lr = 0.00005
     weight_decay = 0.0001
@@ -519,10 +522,10 @@ if __name__=="__main__":
 
     #sort the demonstrations according to ground truth reward
 
-    #set max snippet length to min(2 * average length of demonstration, max length of demonstration)
+
     demo_lengths = [len(d) for d in demonstrations]
     print("demo lengths", demo_lengths)
-    max_snippet_length = min(np.min(demo_lengths), 100)
+    max_snippet_length = min(np.min(demo_lengths), maximum_snippet_length)
     print("max snippet length", max_snippet_length)
 
     print(len(learning_returns))
