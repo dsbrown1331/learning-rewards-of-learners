@@ -15,7 +15,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from run_test import *
-from trex_utils import preprocess
+from baselines.common.trex_utils import preprocess
 
 
 def generate_novice_demos(env, env_name, agent, model_dir):
@@ -70,9 +70,16 @@ def generate_novice_demos(env, env_name, agent, model_dir):
             while True:
                 action = agent.act(ob, r, done)
                 ob, r, done, _ = env.step(action)
-                ob  = ob[0] #get rid of spurious first dimension ob.shape = (1,84,84,4)
+                ob_processed = preprocess(ob, env_name)
+                ob_processed = ob_processed[0] #get rid of spurious first dimension ob.shape = (1,84,84,4)
+                #import matplotlib.pyplot as plt
+                #plt.subplot(1,2,1)
+                #plt.imshow(ob_processed[:,:,3] )
+                #plt.subplot(1,2,2)
+                #plt.imshow(ob[0,:,:,3])
+                #plt.show()
                 #print(ob.shape)
-                traj.append(preprocess(ob, env_name))
+                traj.append(ob_processed)
 
                 gt_rewards.append(r[0])
                 steps += 1
@@ -480,8 +487,8 @@ if __name__=="__main__":
     tf.set_random_seed(seed)
 
     print("Training reward for", env_id)
-    num_traj_augment = 300 #500 #number of pairs of trajectories to create
-    num_snippets = 6000#200#6000
+    num_traj_augment = 500 #500 #number of pairs of trajectories to create
+    num_snippets = 4500#200#6000
     num_super_snippets = 0
     min_snippet_length = 50 #length of trajectory for training comparison
 
