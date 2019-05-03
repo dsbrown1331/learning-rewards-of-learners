@@ -497,7 +497,7 @@ if __name__=="__main__":
 
     lr = 0.00005
     weight_decay = 0.0001
-    num_iter = 5 #num times through training data
+    num_iter = 8 #num times through training data
     l1_reg=0.0
     stochastic = True
 
