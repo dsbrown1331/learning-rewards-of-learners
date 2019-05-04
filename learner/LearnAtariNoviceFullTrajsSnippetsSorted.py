@@ -142,7 +142,7 @@ def create_training_data(demonstrations, num_trajs, num_snippets, min_snippet_le
         #create random partial trajs by finding random start frame and random skip frame
         si = np.random.randint(6)
         sj = np.random.randint(6)
-        step = np.random.randint(2,5)
+        step = np.random.randint(3,7)
         #step_j = np.random.randint(2,6)
         #print("si,sj,skip",si,sj,step)
         traj_i = demonstrations[ti][si::step]  #slice(start,stop,step)
@@ -396,7 +396,7 @@ def learn_reward(reward_network, optimizer, training_inputs, training_outputs, n
             #print stats to see if learning
             item_loss = loss.item()
             cum_loss += item_loss
-            if i % 1000 == 999:
+            if i % 100 == 99:
                 #print(i)
                 print("epoch {}:{} loss {}".format(epoch,i, cum_loss))
                 print(abs_rewards)
@@ -482,15 +482,15 @@ if __name__=="__main__":
     tf.set_random_seed(seed)
 
     print("Training reward for", env_id)
-    num_trajs = 500 #500 #number of pairs of trajectories to create
-    num_snippets = 5500#200#6000
+    num_trajs = 1000 #500 #number of pairs of trajectories to create
+    num_snippets = 0#5500#200#6000
     num_super_snippets = 0
     min_snippet_length = 50 #length of trajectory for training comparison
     maximum_snippet_length = 100
 
     lr = 0.00005
     weight_decay = 0.0001
-    num_iter = 8 #num times through training data
+    num_iter = 5 #num times through training data
     l1_reg=0.0
     stochastic = True
 
