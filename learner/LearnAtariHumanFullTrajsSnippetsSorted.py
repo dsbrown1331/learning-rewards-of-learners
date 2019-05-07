@@ -21,86 +21,6 @@ from run_test import *
 from baselines.common.trex_utils import preprocess
 
 
-def generate_novice_demos(env, env_name, agent, model_dir):
-    checkpoint_min = 50
-    checkpoint_max = 600
-    checkpoint_step = 50
-    checkpoints = []
-    if env_name == "enduro":
-        checkpoint_min = 3100
-        checkpoint_max = 3650
-    elif env_name == "seaquest":
-        checkpoint_min = 10
-        checkpoint_max = 65
-        checkpoint_step = 5
-    for i in range(checkpoint_min, checkpoint_max + checkpoint_step, checkpoint_step):
-        if i < 10:
-            checkpoints.append('0000' + str(i))
-        elif i < 100:
-            checkpoints.append('000' + str(i))
-        elif i < 1000:
-            checkpoints.append('00' + str(i))
-        elif i < 10000:
-            checkpoints.append('0' + str(i))
-    #if env_name == "pong":
-    #    checkpoints = ['00025','00050','00175','00200','00250','00350','00450','00500','00550','00600','00700','00700']
-    print(checkpoints)
-
-
-
-    demonstrations = []
-    learning_returns = []
-    learning_rewards = []
-    for checkpoint in checkpoints:
-
-        model_path = model_dir + "/models/" + env_name + "_25/" + checkpoint
-        if env_name == "seaquest":
-            model_path = model_dir + "/models/" + env_name + "_5/" + checkpoint
-
-        agent.load(model_path)
-        episode_count = 1
-        for i in range(episode_count):
-            done = False
-            traj = []
-            gt_rewards = []
-            r = 0
-
-            ob = env.reset()
-            #traj.append(ob)
-            #print(ob.shape)
-            steps = 0
-            acc_reward = 0
-            while True:
-                action = agent.act(ob, r, done)
-                ob, r, done, _ = env.step(action)
-                ob_processed = preprocess(ob, env_name)
-                ob_processed = ob_processed[0] #get rid of spurious first dimension ob.shape = (1,84,84,4)
-                #import matplotlib.pyplot as plt
-                #plt.subplot(1,2,1)
-                #plt.imshow(ob_processed[:,:,3] )
-                #plt.subplot(1,2,2)
-                #plt.imshow(ob[0,:,:,3])
-                #plt.show()
-                #print(ob.shape)
-                traj.append(ob_processed)
-
-                gt_rewards.append(r[0])
-                steps += 1
-                acc_reward += r[0]
-                if done:
-                    print("checkpoint: {}, steps: {}, return: {}".format(checkpoint, steps,acc_reward))
-                    break
-            print("traj length", len(traj))
-            print("demo length", len(demonstrations))
-            demonstrations.append(traj)
-            learning_returns.append(acc_reward)
-            learning_rewards.append(gt_rewards)
-
-    return demonstrations, learning_returns, learning_rewards
-
-
-
-
 
 
 #cheat and sort them to see if it helps learning
@@ -518,7 +438,7 @@ if __name__=="__main__":
 
     data_dir = args.data_dir
     dataset = ds.AtariDataset(data_dir)
-    demonstrations, learning_returns = agc_demos.get_preprocessed_trajectories(agc_env_name, dataset, data_dir)
+    demonstrations, learning_returns = agc_demos.get_preprocessed_trajectories(agc_env_name, dataset, data_dir, env_name)
 
 
     demo_lengths = [len(d) for d in demonstrations]
