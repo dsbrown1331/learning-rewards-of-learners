@@ -450,7 +450,7 @@ def gen_attention_map(frames, mask_size):
             #get masked frames
             masked_ij = mask_coord(i,j,orig_frame, mask_size)
             r_after = r = reward.cum_return(torch.from_numpy(np.array([masked_ij])).float().to(device))[0].item()
-            r_delta = r_after - r_before
+            r_delta = abs(r_after - r_before)
             #save to heatmap
             delta_heat[i:i+mask_size, j:j+mask_size] += r_delta
     return delta_heat
