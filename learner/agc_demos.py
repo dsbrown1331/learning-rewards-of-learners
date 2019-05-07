@@ -105,8 +105,7 @@ def get_sorted_traj_indices(env_name, dataset):
         skip = 3
     elif env_name == "mspacman":
         start = 0
-        skip = 2
-        num_demos = 24
+        skip = 3
     elif env_name == "pinball":
         start = 0
         skip = 1
