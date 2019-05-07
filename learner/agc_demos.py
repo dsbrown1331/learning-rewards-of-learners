@@ -106,13 +106,14 @@ def get_sorted_traj_indices(env_name, dataset):
     elif env_name == "mspacman":
         start = 0
         skip = 2
+        num_demos = 24
     elif env_name == "pinball":
         start = 0
         skip = 1
     elif env_name == "revenge":
         start = 0
         skip = 1
-        num_demos = 24
+
     demos = non_duplicates[start:num_demos*skip + start:skip]
     print("(index, score) pairs:",demos)
     return demos
