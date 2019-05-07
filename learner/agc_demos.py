@@ -96,7 +96,7 @@ def get_sorted_traj_indices(env_name, dataset):
     num_demos = 12
     if env_name == "spaceinvaders":
         start = 0
-        skip = 5
+        skip = 4
     elif env_name == "revenge":
         start = 0
         skip = 1
@@ -142,7 +142,7 @@ def get_preprocessed_trajectories(env_name, dataset, data_dir):
         demo_norm_mask = []
         #normalize values to be between 0 and 1 and have top part masked
         for ob in stacked_traj:
-            demo_norm_mask.append(preprocess(ob, env_name))
+            demo_norm_mask.append(preprocess(ob, env_name)[0])
         human_demos.append(demo_norm_mask)
     return human_demos, human_scores
 
