@@ -117,7 +117,7 @@ def get_sorted_traj_indices(env_name, dataset):
     print("(index, score) pairs:",demos)
     return demos
 
-def get_preprocessed_trajectories(env_name, dataset, data_dir):
+def get_preprocessed_trajectories(env_name, dataset, data_dir, preprocess_name):
     """returns an array of trajectories corresponding to what you would get running checkpoints from PPO
        demonstrations are grayscaled, maxpooled, stacks of 4 with normalized values between 0 and 1 and
        top section of screen is masked
@@ -142,7 +142,7 @@ def get_preprocessed_trajectories(env_name, dataset, data_dir):
         demo_norm_mask = []
         #normalize values to be between 0 and 1 and have top part masked
         for ob in stacked_traj:
-            demo_norm_mask.append(preprocess(ob, env_name)[0])
+            demo_norm_mask.append(preprocess(ob, preprocess_name)[0])
         human_demos.append(demo_norm_mask)
     return human_demos, human_scores
 
