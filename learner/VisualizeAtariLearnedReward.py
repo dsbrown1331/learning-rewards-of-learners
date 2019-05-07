@@ -174,6 +174,9 @@ elif env_name == "seaquest":
     checkpoint_min = 10
     checkpoint_max = 65
     checkpoint_step = 5
+elif env_name == "hero":
+    checkpoint_max = 2400
+    checkpoint_step = 100
 checkpoints_extrapolate = []
 for i in range(checkpoint_min, checkpoint_max + checkpoint_step, checkpoint_step):
         if i < 10:
@@ -288,6 +291,8 @@ def convert_range(x,minimum, maximum,a,b):
 
 
 buffer = 20
+if env_name == "pong":
+    buffer = 2
 import matplotlib.pylab as pylab
 params = {'legend.fontsize': 'xx-large',
          # 'figure.figsize': (6, 5),
@@ -302,9 +307,9 @@ print(pred_returns_all)
 print(learning_returns_all)
 plt.plot(learning_returns_demos, [convert_range(p,max(pred_returns_all), min(pred_returns_all),max(learning_returns_all), min(learning_returns_all)) for p in pred_returns_demos],'ro')
 plt.plot(learning_returns_extrapolate, [convert_range(p,max(pred_returns_all), min(pred_returns_all),max(learning_returns_all), min(learning_returns_all)) for p in pred_returns_extrapolate],'bo')
-plt.plot([0,max(learning_returns_all) + buffer],[0,max(learning_returns_all) + buffer],'g--')
-plt.plot([0,max(learning_returns_demos)],[0,max(learning_returns_demos)],'k-', linewidth=2)
-plt.axis([0,max(learning_returns_all) + buffer,0,max(learning_returns_all)+buffer])
+plt.plot([min(0, min(learning_returns_all)-2),max(learning_returns_all) + buffer],[min(0, min(learning_returns_all)-2),max(learning_returns_all) + buffer],'g--')
+plt.plot([min(0, min(learning_returns_all)-2),max(learning_returns_demos)],[min(0, min(learning_returns_all)-2),max(learning_returns_demos)],'k-', linewidth=2)
+plt.axis([min(0, min(learning_returns_all)-2),max(learning_returns_all) + buffer,min(0, min(learning_returns_all)-2),max(learning_returns_all)+buffer])
 plt.xlabel("Ground Truth Returns")
 plt.ylabel("Predicted Returns (normalized)")
 plt.tight_layout()
@@ -343,7 +348,7 @@ print(len(demos_to_plot))
 cnt = 0
 with torch.no_grad():
     d = demos_to_plot[0]
-    plt.figure(1)
+    plt.figure(2)
     rewards = []
     print(cnt)
     cnt += 1
@@ -363,7 +368,7 @@ with torch.no_grad():
 
 with torch.no_grad():
     d = demos_to_plot[1]
-    plt.figure(2)
+    plt.figure(3)
     rewards = []
     print(cnt)
     cnt += 1
@@ -384,7 +389,7 @@ with torch.no_grad():
 
 with torch.no_grad():
     d = demos_to_plot[2]
-    plt.figure(3)
+    plt.figure(4)
     rewards = []
     print(cnt)
     cnt += 1
@@ -429,13 +434,13 @@ with torch.no_grad():
 
 
 
-def mask_coord(i,j,frames, mask_size):
+def mask_coord(i,j,frames, mask_size, channel):
     #takes in i,j pixel and stacked frames to mask
     masked = frames.copy()
-    masked[:,i:i+mask_size,j:j+mask_size,:] = 0
+    masked[:,i:i+mask_size,j:j+mask_size,channel] = 0
     return masked
 
-def gen_attention_map(frames, mask_size):
+def gen_attention_maps(frames, mask_size):
 
     orig_frame = frames
 
@@ -444,31 +449,36 @@ def gen_attention_map(frames, mask_size):
 
     #find reward without any masking once
     r_before = reward.cum_return(torch.from_numpy(np.array([orig_frame])).float().to(device))[0].item()
-    delta_heat = np.zeros((height, width))
-    for i in range(height-mask_size):
-        for j in range(width - mask_size):
-            #get masked frames
-            masked_ij = mask_coord(i,j,orig_frame, mask_size)
-            r_after = r = reward.cum_return(torch.from_numpy(np.array([masked_ij])).float().to(device))[0].item()
-            r_delta = abs(r_after - r_before)
-            #save to heatmap
-            delta_heat[i:i+mask_size, j:j+mask_size] += r_delta
-    return delta_heat
+    heat_maps = []
+    for c in range(4): #four stacked frame channels
+        delta_heat = np.zeros((height, width))
+        for i in range(height-mask_size):
+            for j in range(width - mask_size):
+                #get masked frames
+                masked_ij = mask_coord(i,j,orig_frame, mask_size, c)
+                r_after = r = reward.cum_return(torch.from_numpy(np.array([masked_ij])).float().to(device))[0].item()
+                r_delta = abs(r_after - r_before)
+                #save to heatmap
+                delta_heat[i:i+mask_size, j:j+mask_size] += r_delta
+        heat_maps.append(delta_heat)
+    return heat_maps
 
 
 
 #plot heatmap
 mask_size = 3
-delta_heat_max = gen_attention_map(max_frame, mask_size)
-delta_heat_min = gen_attention_map(min_frame, mask_size)
+delta_heat_max = gen_attention_maps(max_frame, mask_size)
+delta_heat_min = gen_attention_maps(min_frame, mask_size)
 
 
 # In[45]:
 
 
-plt.figure()
-plt.imshow(delta_heat_max,cmap='seismic', interpolation='nearest')
-plt.axis('off')
+plt.figure(5)
+for cnt in range(4):
+    plt.subplot(1,4,cnt+1)
+    plt.imshow(delta_heat_max[cnt],cmap='seismic', interpolation='nearest')
+    plt.axis('off')
 plt.tight_layout()
 plt.savefig(save_fig_dir + "/" + env_name + "max_attention.png", bbox_inches='tight')
 #plt.show()
@@ -478,7 +488,7 @@ plt.savefig(save_fig_dir + "/" + env_name + "max_attention.png", bbox_inches='ti
 
 # In[40]:
 
-plt.figure()
+plt.figure(6)
 print(max_frame_i)
 print(max_reward)
 for cnt in range(4):
@@ -496,9 +506,11 @@ plt.savefig(save_fig_dir + "/" + env_name + "max_frames.png", bbox_inches='tight
 
 # In[46]:
 
-plt.figure()
-plt.imshow(delta_heat_min,cmap='seismic', interpolation='nearest')
-plt.axis('off')
+plt.figure(7)
+for cnt in range(4):
+    plt.subplot(1,4,cnt+1)
+    plt.imshow(delta_heat_min[cnt])
+    plt.axis('off')
 plt.tight_layout()
 plt.savefig(save_fig_dir + "/" + env_name + "min_attention.png", bbox_inches='tight')
 #plt.title("min frame")
@@ -510,7 +522,7 @@ plt.savefig(save_fig_dir + "/" + env_name + "min_attention.png", bbox_inches='ti
 
 print(min_frame_i)
 print(min_reward)
-plt.figure()
+plt.figure(8)
 for cnt in range(4):
     plt.subplot(1,4,cnt+1)
     plt.imshow(min_frame[0][:,:,cnt])
@@ -535,7 +547,7 @@ rand_frames = demonstrations[d_rand][f_rand]
 
 # In[55]:
 
-plt.figure()
+plt.figure(9)
 for cnt in range(4):
     plt.subplot(1,4,cnt+1)
     plt.imshow(rand_frames[0][:,:,cnt])
@@ -552,10 +564,12 @@ plt.savefig(save_fig_dir + "/" + env_name + "random_frames.png", bbox_inches='ti
 # In[56]:
 
 
-delta_heat_rand = gen_attention_map(rand_frames, mask_size)
-plt.figure()
-plt.imshow(delta_heat_rand,cmap='seismic', interpolation='nearest')
-plt.axis('off')
+delta_heat_rand = gen_attention_maps(rand_frames, mask_size)
+plt.figure(10)
+for cnt in range(4):
+    plt.subplot(1,4,cnt+1)
+    plt.imshow(delta_heat_rand[cnt])
+    plt.axis('off')
 plt.tight_layout()
 #plt.colorbar()
 plt.savefig(save_fig_dir + "/" + env_name + "random_attention.png", bbox_inches='tight')
