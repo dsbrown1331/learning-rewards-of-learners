@@ -510,7 +510,7 @@ plt.savefig(save_fig_dir + "/" + env_name + "max_frames.png", bbox_inches='tight
 plt.figure(7)
 for cnt in range(4):
     plt.subplot(1,4,cnt+1)
-    plt.imshow(delta_heat_min[cnt])
+    plt.imshow(delta_heat_min[cnt],cmap='seismic', interpolation='nearest')
     plt.axis('off')
 plt.tight_layout()
 plt.savefig(save_fig_dir + "/" + env_name + "min_attention.png", bbox_inches='tight')
@@ -569,7 +569,7 @@ delta_heat_rand = gen_attention_maps(rand_frames, mask_size)
 plt.figure(10)
 for cnt in range(4):
     plt.subplot(1,4,cnt+1)
-    plt.imshow(delta_heat_rand[cnt])
+    plt.imshow(delta_heat_rand[cnt],cmap='seismic', interpolation='nearest')
     plt.axis('off')
 plt.tight_layout()
 #plt.colorbar()
