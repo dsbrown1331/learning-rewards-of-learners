@@ -168,7 +168,7 @@ checkpoint_max = 1450
 checkpoint_step = 50
 if env_name == "enduro":
     checkpoint_min = 3625
-    checkpoint_max = 4825
+    checkpoint_max = 4425
     checkpoint_step = 50
 elif env_name == "seaquest":
     checkpoint_min = 10
