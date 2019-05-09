@@ -175,6 +175,7 @@ elif env_name == "seaquest":
     checkpoint_max = 65
     checkpoint_step = 5
 elif env_name == "hero":
+    checkpoint_min = 100
     checkpoint_max = 2400
     checkpoint_step = 100
 checkpoints_extrapolate = []
