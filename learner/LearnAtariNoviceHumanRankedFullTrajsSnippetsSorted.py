@@ -209,13 +209,10 @@ def create_training_data_from_mturk(demonstrations, human_rankings, num_trajs, n
 
     #fixed size snippets with progress prior
     for n in range(num_snippets):
-        ti = 0
-        tj = 0
-        #only add trajectories that are different returns
-        while(ti == tj):
-            #pick two random demonstrations
-            ti = np.random.randint(num_demos)
-            tj = np.random.randint(num_demos)
+
+        random_pref = random.choice(human_rankings)
+        #print(random_pref)
+        ti,tj,label = random_pref
         #print(ti, tj)
         #create random snippets
         #find min length of both demos to ensure we can pick a demo no earlier than that chosen in worse preferred demo
@@ -481,8 +478,8 @@ if __name__=="__main__":
     tf.set_random_seed(seed)
 
     print("Training reward for", env_id)
-    num_trajs = 2000 #500 #number of pairs of trajectories to create
-    num_snippets = 0#6000#5500#200#6000
+    num_trajs = 0 #500 #number of pairs of trajectories to create
+    num_snippets = 6000#6000#5500#200#6000
     num_super_snippets = 0
     min_snippet_length = 50 #length of trajectory for training comparison
     maximum_snippet_length = 100
