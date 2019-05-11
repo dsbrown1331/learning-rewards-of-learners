@@ -245,7 +245,10 @@ for checkpoint in checkpoints_extrapolate:
         model_path = model_dir + "/models/" + env_name + "_5/" + checkpoint
 
     agent.load(model_path)
-    episode_count = 3
+    if env_name == "enduro":
+        episode_count = 1
+    else:
+        episode_count = 3
     for i in range(episode_count):
         done = False
         traj = []

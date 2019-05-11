@@ -149,17 +149,18 @@ def get_preprocessed_trajectories(env_name, dataset, data_dir, preprocess_name):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--env', default='', help="AGC environment name: spaceinvaders, qbert, mspacman, revenge, pinball")
+    parser.add_argument('--agc_env', default='', help="AGC environment name: spaceinvaders, qbert, mspacman, revenge, pinball")
+    parser.add_argument('--atari_full_env', help="Full lowercase atari env name: eg spaceinvadrs, montezumarevenge, etc")
     parser.add_argument('--datadir', default=None, help='location of atari gc data')
     args = parser.parse_args()
-    env_name = args.env
+    env_name = args.agc_env
     args.datadir
     if args.datadir is None:
         data_dir = '/home/dsbrown/Code/atarigrandchallenge/atari_v1'
     else:
         data_dir = args.datadir
     dataset = ds.AtariDataset(data_dir)
-    human_demos, human_scores = get_preprocessed_trajectories(env_name, dataset, data_dir)
+    human_demos, human_scores = get_preprocessed_trajectories(env_name, dataset, data_dir, args.atari_full_env)
     print(human_scores)
     #print(human_demos[0][0])
     print(max(human_scores))
