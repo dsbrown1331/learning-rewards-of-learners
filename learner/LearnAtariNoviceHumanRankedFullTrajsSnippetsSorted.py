@@ -137,7 +137,7 @@ def create_training_data_from_mturk(demonstrations, human_rankings, num_trajs, n
         random_pref = random.choice(human_rankings)
         #print(random_pref)
         ti,tj,label = random_pref
-        #print(ti, tj, label)
+        #print("random pref", ti, tj, label)
         #create random partial trajs by finding random start frame and random skip frame
         si = np.random.randint(6)
         sj = np.random.randint(6)
@@ -147,78 +147,24 @@ def create_training_data_from_mturk(demonstrations, human_rankings, num_trajs, n
         traj_i = demonstrations[ti][si::step]  #slice(start,stop,step)
         traj_j = demonstrations[tj][sj::step]
         #max_traj_length = max(max_traj_length, len(traj_i), len(traj_j))
-        if ti > tj:
-            label = 0
-        else:
-            label = 1
-        #print(label)
+        #print("label", label)
+
         training_obs.append((traj_i, traj_j))
         training_labels.append(label)
         max_traj_length = max(max_traj_length, len(traj_i), len(traj_j))
 
-    # #add snippets based on progress but supersample and subsample
-    # #combine all demos into one big demo
-    # all_demos = []
-    # for d in demonstrations:
-    #     all_demos += d
-    # all_demos = np.array(all_demos)
-    # print(type(all_demos))
-    # print(len(all_demos))
-    # print(type(all_demos[0]))
-    # print(type(all_demos[1]))
-    # for n in range(num_super_snippets):
-    #     ti_start = 0
-    #     tj_start = 0
-    #     rand_length = np.random.randint(min_snippet_length, max_snippet_length)
-    #     #only add trajectories that are different returns
-    #     while(abs(ti_start - tj_start) < min_snippet_length):
-    #         #pick two random demonstrations
-    #         ti_start = np.random.randint(len(all_demos)-rand_length + 1)
-    #         tj_start = np.random.randint(len(all_demos)-rand_length + 1)
-    #
-    #     print("ti", ti_start, "tj", tj_start)
-    #     rand_length = np.random.randint(min_snippet_length, max_snippet_length)
-    #     if rand_length < 100:
-    #         rand_step = 1
-    #     else:
-    #         rand_step = step = np.random.randint(2,9)
-    #     traj_i = all_demos[ti_start:ti_start + rand_length:rand_step]
-    #     traj_j = all_demos[tj_start:tj_start + rand_length:rand_step]
-    #     max_traj_length = max(max_traj_length, len(traj_i), len(traj_j))
-    #     print("length", rand_length, "step", rand_step)
-    #     #print('traj', traj_i, traj_j)
-    #     #return_i = sum(learning_rewards[ti][ti_start:ti_start+snippet_length])
-    #     #return_j = sum(learning_rewards[tj][tj_start:tj_start+snippet_length])
-    #     #print("returns", return_i, return_j)
-    #
-    #     #if return_i > return_j:
-    #     #    label = 0
-    #     #else:
-    #     #    label = 1
-    #     if ti_start > tj_start:
-    #         label = 0
-    #     else:
-    #         label = 1
-    #     print(label)
-    #     #print(traj_i)
-    #     #print(traj_j)
-    #     assert(len(traj_i) > 0)
-    #     assert(len(traj_j) > 0)
-    #     training_obs.append((traj_i, traj_j))
-    #     training_labels.append(label)
-
-    #fixed size snippets with progress prior
+    #random size snippets with progress prior
     for n in range(num_snippets):
 
         random_pref = random.choice(human_rankings)
         #print(random_pref)
         ti,tj,label = random_pref
-        #print(ti, tj)
+        #print("random pref", ti, tj, label)
         #create random snippets
         #find min length of both demos to ensure we can pick a demo no earlier than that chosen in worse preferred demo
         min_length = min(len(demonstrations[ti]), len(demonstrations[tj]))
         rand_length = np.random.randint(min_snippet_length, max_snippet_length)
-        if ti < tj: #pick tj snippet to be later than ti
+        if label == 1: #pick tj snippet to be later than ti
             ti_start = np.random.randint(min_length - rand_length + 1)
             #print(ti_start, len(demonstrations[tj]))
             tj_start = np.random.randint(ti_start, len(demonstrations[tj]) - rand_length + 1)
@@ -239,57 +185,12 @@ def create_training_data_from_mturk(demonstrations, human_rankings, num_trajs, n
         #else:
         #    label = 1
         max_traj_length = max(max_traj_length, len(traj_i), len(traj_j))
-        if ti > tj:
-            label = 0
-        else:
-            label = 1
         training_obs.append((traj_i, traj_j))
         training_labels.append(label)
 
     print("maximum traj length", max_traj_length)
     return training_obs, training_labels
 
-
-# class Net(nn.Module):
-#     def __init__(self):
-#         super().__init__()
-#         self.conv1 = nn.Conv2d(4, 32, kernel_size=8, stride=4)
-#         self.conv2 = nn.Conv2d(32, 64, kernel_size=4, stride=2)
-#         self.conv3 = nn.Conv2d(64, 64, kernel_size=3, stride=1)
-#         self.fc1 = nn.Linear(64 * 7 * 7, 512)
-#         self.output = nn.Linear(512, 1)
-#
-#     def cum_return(self, traj):
-#         '''calculate cumulative return of trajectory'''
-#         sum_rewards = 0
-#         sum_abs_rewards = 0
-#         for x in traj:
-#             x = x.permute(0,3,1,2) #get into NCHW format
-#             #compute forward pass of reward network
-#             conv1_output = F.relu(self.conv1(x))
-#             conv2_output = F.relu(self.conv2(conv1_output))
-#             conv3_output = F.relu(self.conv3(conv2_output))
-#             fc1_output = F.relu(self.fc1(conv3_output.view(conv3_output.size(0),-1)))
-#             r = self.output(fc1_output)
-#             sum_rewards += r
-#             sum_abs_rewards += torch.abs(r)
-#         ##    y = self.scalar(torch.ones(1))
-#         ##    sum_rewards += y
-#         #print(sum_rewards)
-#         return sum_rewards, sum_abs_rewards
-#
-#
-#
-#     def forward(self, traj_i, traj_j):
-#         #print(traj_i)
-#         #print(traj_j)
-#         '''compute cumulative return for each trajectory and return logits'''
-#         #print([self.cum_return(traj_i), self.cum_return(traj_j)])
-#         cum_r_i, abs_r_i = self.cum_return(traj_i)
-#         cum_r_j, abs_r_j = self.cum_return(traj_j)
-#         #print(abs_r_i + abs_r_j)
-#         return torch.cat([cum_r_i, cum_r_j]), abs_r_i + abs_r_j
-#
 
 
 
@@ -455,6 +356,8 @@ if __name__=="__main__":
     parser.add_argument('--reward_model_path', default='', help="name and location for learned model params")
     parser.add_argument('--seed', default=0, help="random seed for experiments")
     parser.add_argument('--models_dir', default = ".", help="top directory where checkpoint models for demos are stored")
+    parser.add_argument('--num_trajs', default = 0, type=int, help="number of downsampled full trajectories")
+    parser.add_argument('--num_snippets', default = 6000, type = int, help = "number of short subtrajectories to sample")
 
     args = parser.parse_args()
     env_name = args.env_name
@@ -478,8 +381,8 @@ if __name__=="__main__":
     tf.set_random_seed(seed)
 
     print("Training reward for", env_id)
-    num_trajs = 0 #500 #number of pairs of trajectories to create
-    num_snippets = 6000#6000#5500#200#6000
+    num_trajs = args.num_trajs # 0 #500 #number of pairs of trajectories to create
+    num_snippets = args.num_snippets #6000 #6000#6000#5500#200#6000
     num_super_snippets = 0
     min_snippet_length = 50 #length of trajectory for training comparison
     maximum_snippet_length = 100
@@ -502,31 +405,12 @@ if __name__=="__main__":
     agent = PPO2Agent(env, env_type, stochastic)
 
     demonstrations, learning_returns, learning_rewards, checkpoints = generate_novice_demos(env, env_name, agent, args.models_dir)
-    # Let's plot the returns to see if they are roughly monotonically increasing.
-    #plt.plot(learning_returns)
-    #plt.xlabel("Demonstration")
-    #plt.ylabel("Return")
-    #plt.savefig(env_type + "LearningCurvePPO.png")
-    #plt.show()
-
-    #sort the demonstrations according to ground truth reward
-
 
     demo_lengths = [len(d) for d in demonstrations]
     print("demo lengths", demo_lengths)
     max_snippet_length = min(np.min(demo_lengths), maximum_snippet_length)
     print("max snippet length", max_snippet_length)
-
-    print(len(learning_returns))
     print(len(demonstrations))
-    print([a[0] for a in zip(learning_returns, demonstrations)])
-    #sort them based on human preferences
-    demonstrations = [x for _, x in sorted(zip(learning_returns,demonstrations), key=lambda pair: pair[0])]
-
-    sorted_returns = sorted(learning_returns)
-    print(sorted_returns)
-    #plt.plot(sorted_returns)
-    #plt.show()
 
 
     #read the human labels and get list of tuples (idx1,idx2,label)
@@ -559,7 +443,7 @@ if __name__=="__main__":
     with torch.no_grad():
         pred_returns = [predict_traj_return(reward_net, traj) for traj in demonstrations]
     for i, p in enumerate(pred_returns):
-        print(i,p,sorted_returns[i])
+        print(i,p,learning_returns[i])
 
     print("accuracy", calc_accuracy(reward_net, training_obs, training_labels))
 
