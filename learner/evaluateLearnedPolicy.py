@@ -10,7 +10,7 @@ from run_test import *
 #import matplotlib.pylab as plt
 import argparse
 
-def evaluate_learned_policy(env_name, checkpoint, model_path = None):
+def evaluate_learned_policy(env_name, checkpointpath):
     if env_name == "spaceinvaders":
         env_id = "SpaceInvadersNoFrameskip-v4"
     elif env_name == "mspacman":
@@ -19,6 +19,8 @@ def evaluate_learned_policy(env_name, checkpoint, model_path = None):
         env_id = "VideoPinballNoFrameskip-v4"
     elif env_name == "beamrider":
         env_id = "BeamRiderNoFrameskip-v4"
+    elif env_name == "montezumarevenge":
+        env_id = "MontezumaRevengeNoFrameskip-v4"
     else:
         env_id = env_name[0].upper() + env_name[1:] + "NoFrameskip-v4"
 
@@ -42,11 +44,10 @@ def evaluate_learned_policy(env_name, checkpoint, model_path = None):
     #agent = RandomAgent(env.action_space)
 
     learning_returns = []
-    if model_path is None:
-        model_path = "/work/05933/dsbrown/maverick/tflogs/" + env_name + "_sorted-ppo-2/checkpoints/" + str(checkpoint_num)
+    print(checkpointpath)
 
-    agent.load(model_path)
-    episode_count = 10
+    agent.load(checkpointpath)
+    episode_count = 30
     for i in range(episode_count):
         done = False
         traj = []
@@ -78,15 +79,15 @@ def evaluate_learned_policy(env_name, checkpoint, model_path = None):
 
 
 
-    print(learning_returns)
+    return learning_returns
 
-    return([np.max(learning_returns), np.min(learning_returns), np.mean(learning_returns)])
+    #return([np.max(learning_returns), np.min(learning_returns), np.mean(learning_returns)])
 
 if __name__=="__main__":
     parser = argparse.ArgumentParser(description=None)
-    parser.add_argument('--seed', default=0, help="random seed for experiments")
+    parser.add_argument('--seed', default=1234, help="random seed for experiments")
     parser.add_argument('--env_name', default='', help='Select the environment name to run, i.e. pong')
-    parser.add_argument('--model_path', default = None, help='Path and filename for model if not on TACC')
+    parser.add_argument('--checkpointpath', default='', help='path to checkpoint to run eval on')
     args = parser.parse_args()
     env_name = args.env_name
     #set seeds
@@ -95,8 +96,13 @@ if __name__=="__main__":
     np.random.seed(seed)
     tf.set_random_seed(seed)
 
-    checkpoint_num = 15000
+    checkpointpath = args.checkpointpath
     print("*"*10)
     print(env_name)
     print("*"*10)
-    print(evaluate_learned_policy(env_name, checkpoint_num, args.model_path))
+    returns = evaluate_learned_policy(env_name, checkpointpath)
+    #write returns to file
+    f = open("./eval/" + env_name + checkpointpath.replace("/","_") + "_evaluation.txt",'w')
+    for r in returns:
+        f.write("{}\n".format(r))
+    f.close()
