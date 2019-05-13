@@ -46,7 +46,7 @@ def evaluate_learned_policy(env_name, checkpoint, model_path = None):
         model_path = "/work/05933/dsbrown/maverick/tflogs/" + env_name + "_sorted-ppo-2/checkpoints/" + str(checkpoint_num)
 
     agent.load(model_path)
-    episode_count = 10
+    episode_count = 30
     for i in range(episode_count):
         done = False
         traj = []
