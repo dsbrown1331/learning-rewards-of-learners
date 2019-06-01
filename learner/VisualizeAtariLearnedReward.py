@@ -441,7 +441,13 @@ with torch.no_grad():
 def mask_coord(i,j,frames, mask_size, channel):
     #takes in i,j pixel and stacked frames to mask
     masked = frames.copy()
-    masked[:,i:i+mask_size,j:j+mask_size,channel] = 0
+    if env_name == 'pong':
+        mask_number = 0.34117647  #default background for pong
+    elif env_name == 'seaquest':
+        mask_number = 0.1254902   #default background for seaquest
+    else:
+        mask_number = 0
+    masked[:,i:i+mask_size,j:j+mask_size,channel] = mask_number
     return masked
 
 def gen_attention_maps(frames, mask_size):
